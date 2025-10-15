@@ -7,7 +7,9 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:Schedule-Planner-UI": "node dist/Schedule-Planner-UI/server/server.mjs"
+    "serve:ssr:Schedule-Planner-UI": "node dist/Schedule-Planner-UI/server/server.mjs",
+    "format:fix": "prettier --write .",
+    "lint": "eslint --fix ."
   },
   "prettier": {
     "printWidth": 100,
@@ -48,6 +50,8 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "eslint": "^8.45.0",
+    "prettier": "^3.0.0"
   }
 }
