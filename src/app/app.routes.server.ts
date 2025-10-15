@@ -1,8 +1,8 @@
-import { Routes } from '@angular/router';
-import { LandingComponent } from './landing/landing.component';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
-export const routes: Routes = [
-  { path: '', redirectTo: 'landing', pathMatch: 'full' },
-  { path: 'landing', component: LandingComponent },
-  { path: '**', redirectTo: 'landing', pathMatch: 'full' },
+export const serverRoutes: ServerRoute[] = [
+  {
+    path: '**',
+    renderMode: RenderMode.Prerender,
+  },
 ];

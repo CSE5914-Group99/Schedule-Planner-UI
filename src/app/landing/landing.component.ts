@@ -34,7 +34,7 @@ export class ByDayTimePipe implements PipeTransform {
   standalone: true,
   imports: [FormsModule, CommonModule, ByDayTimePipe],
   templateUrl: './landing.component.html',
-  styleUrls: ['./landing.component.css']
+  styleUrls: ['./landing.component.scss']
 })
 export class LandingComponent {
   days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -50,11 +50,12 @@ export class LandingComponent {
   constructor() { this.refresh(); }
 
   read(): ScheduleItem[] {
-    const raw = localStorage.getItem('schedule_data');
-    return raw ? JSON.parse(raw) : [];
+    // const raw = localStorage.getItem('schedule_data');
+    // return raw ? JSON.parse(raw) : [];
+    return [{ id: '1', type: 'class', title: 'Sample Class', date: '2024-06-03', start: '10:00', end: '11:00', location: 'Room 101', notes: 'This is a sample class.' }];
   }
   write(list: ScheduleItem[]) {
-    localStorage.setItem('schedule_data', JSON.stringify(list));
+    // localStorage.setItem('schedule_data', JSON.stringify(list));
   }
 
   refresh() {
