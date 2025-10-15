@@ -1,0 +1,33 @@
+/* header styles */
+.header {
+  background-color: #f8f9fa;
+  padding: 10px 20px;
+  display: flex;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid black;
+  font-family: 'Inter', Arial, sans-serif;
+  font-weight: medium;
+}
+.header p {
+  font-size: 24px;
+  align-items: flex-start;
+  margin-left: 25px;
+  flex-grow: 1;
+}
+.header button {
+  margin-left: 15px;
+  padding: 8px 20px;
+  font-size: 20px;
+  align-items: flex-end;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: rgb(31, 31, 31);
+  color: white;
+  border: none;
+  border-radius: 16px;
+}
+
+.header .button--borderless {
+  background-color: transparent;
+  color: black;
+}
