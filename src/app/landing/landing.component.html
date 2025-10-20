@@ -1,0 +1,83 @@
+<h2 class="title">Schedule Planner</h2>
+
+<!-- Upcoming at top -->
+<section class="card">
+  <h3>Upcoming (next 5)</h3>
+  <div *ngIf="!upcoming.length" class="muted">No upcoming items.</div>
+  <ul class="upcoming">
+    <li *ngFor="let u of upcoming">
+      <strong>[{{ u.type }}]</strong>
+      {{ u.title }} — {{ u.date }} {{ u.start }}–{{ u.end }}
+      <span *ngIf="u.location"> &#64; {{ u.location }}</span>
+    </li>
+  </ul>
+</section>
+
+<div class="layout">
+  <!-- 左侧：难度小组件（可占位） -->
+  <aside class="card side">
+    <h4>Estimated Difficulty</h4>
+    <p class="muted">
+      This schedule has an estimated difficulty of <strong>{{ items.length * 2 }}</strong> hours of
+      work per week
+    </p>
+    <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
+  </aside>
+
+  <!-- 中间：周历 -->
+  <section class="card flex1">
+    <div class="weekgrid">
+      <div class="head cell">Time</div>
+      <div class="head cell" *ngFor="let d of days">{{ d }}</div>
+
+      <ng-container *ngFor="let t of times">
+        <div class="time cell">{{ t }}</div>
+        <div class="slot cell" *ngFor="let d of days" (click)="quickAdd(d, t)">
+          <div class="slot-items">
+            <div class="pill" *ngFor="let it of items | byDayTime: d : t">
+              {{ it.title }}
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+
+  <!-- 右侧：操作 -->
+  <aside class="card side">
+    <button class="btn" (click)="open('class')">Add Class</button>
+    <button class="btn" (click)="open('event')">Add Event</button>
+
+    <div class="divider"></div>
+
+    <h4>All Items</h4>
+    <div class="list">
+      <div class="row" *ngFor="let it of items">
+        <span class="tag">{{ it.type }}</span>
+        <span class="grow">{{ it.title }}</span>
+        <span class="muted">{{ it.date }} {{ it.start }}–{{ it.end }}</span>
+        <button class="link danger" (click)="remove(it.id)">Remove</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- 表单（简易） -->
+<section class="card mt" *ngIf="showForm">
+  <h3>Add {{ form.type }}</h3>
+  <div class="form-grid">
+    <label>Title <input [(ngModel)]="form.title" /></label>
+    <label>Date <input type="date" [(ngModel)]="form.date" /></label>
+    <label>Start <input type="time" [(ngModel)]="form.start" /></label>
+    <label>End <input type="time" [(ngModel)]="form.end" /></label>
+    <label>Location <input [(ngModel)]="form.location" /></label>
+  </div>
+  <label
+    >Notes
+    <textarea [(ngModel)]="form.notes"></textarea>
+  </label>
+  <div class="actions">
+    <button class="btn" (click)="add()">Save</button>
+    <button class="btn ghost" (click)="cancel()">Cancel</button>
+  </div>
+</section>
