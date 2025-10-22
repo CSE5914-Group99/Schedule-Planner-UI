@@ -2,5 +2,9 @@
   <p>Schedule Planner</p>
   <button class="button--borderless" (click)="homeClicked()">Home</button>
   <button class="button--borderless" (click)="savedSchedulesClicked()">Saved Schedules</button>
-  <button (click)="signInClicked()">Sign in</button>
+  @if (!signedIn) {
+    <button (click)="signInClicked()">Sign in</button>
+  } @else {
+    <button (click)="signOutClicked()">Log Out</button>
+  }
 </span>
