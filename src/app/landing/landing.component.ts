@@ -69,24 +69,18 @@ export class LandingComponent {
   }
 
   read(): ScheduleItem[] {
-    // const raw = localStorage.getItem('schedule_data');
-    // return raw ? JSON.parse(raw) : [];
-    return [
-      {
-        id: '1',
-        type: 'class',
-        title: 'Sample Class',
-        date: '2024-06-03',
-        start: '10:00',
-        end: '11:00',
-        location: 'Room 101',
-        notes: 'This is a sample class.',
-      },
-    ];
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    const raw = localStorage.getItem('schedule_data');
+    return raw ? JSON.parse(raw) : [];
   }
-  write(list: ScheduleItem[]) {
-    // localStorage.setItem('schedule_data', JSON.stringify(list));
+  return [];
+}
+
+write(list: ScheduleItem[]) {
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    localStorage.setItem('schedule_data', JSON.stringify(list));
   }
+}
 
   refresh() {
     this.items = this.read();

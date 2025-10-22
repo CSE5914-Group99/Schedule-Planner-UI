@@ -14,7 +14,7 @@
 </section>
 
 <div class="layout">
-  <!-- 左侧：难度小组件（可占位） -->
+  <!-- Left Difficulity -->
   <aside class="card side">
     <h4>Estimated Difficulty</h4>
     <p class="muted">
@@ -24,7 +24,7 @@
     <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
   </aside>
 
-  <!-- 中间：周历 -->
+  <!-- calender -->
   <section class="card flex1">
     <div class="weekgrid">
       <div class="head cell">Time</div>
@@ -43,7 +43,7 @@
     </div>
   </section>
 
-  <!-- 右侧：操作 -->
+  <!-- Right munipulate -->
   <aside class="card side">
     <button class="btn" (click)="open('class')">Add Class</button>
     <button class="btn" (click)="open('event')">Add Event</button>
@@ -62,7 +62,7 @@
   </aside>
 </div>
 
-<!-- 表单（简易） -->
+<!-- format -->
 <section class="card mt" *ngIf="showForm">
   <h3>Add {{ form.type }}</h3>
   <div class="form-grid">
