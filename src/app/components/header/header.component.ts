@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, inject, NgZone, OnInit } from '@angular/c
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from '@angular/fire/auth';
+import { BackendService } from '../../services/backend.service';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +16,7 @@ export class HeaderComponent implements OnInit {
   auth: Auth = inject(Auth);
   cdRef: ChangeDetectorRef = inject(ChangeDetectorRef);
   zone: NgZone = inject(NgZone);
+  backendService: BackendService = inject(BackendService);
 
   signedIn: boolean = false;
 
@@ -26,6 +28,14 @@ export class HeaderComponent implements OnInit {
 
         this.cdRef.markForCheck();
       });
+    });
+    this.backendService.testEndpoint().subscribe({
+      next: (data) => {
+        console.log('Backend response:', data);
+      },
+      error: (error) => {
+        console.error('Backend error:', error);
+      }
     });
   }
 
