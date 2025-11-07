@@ -1,3 +1,10 @@
+@use '../../../styles/variables' as *;
+
+.landing {
+  padding-top: var(--header-height);
+  padding-bottom: var(--footer-height);
+}
+
 .title {
   margin: 12px 0 6px;
 }
@@ -19,6 +26,7 @@
 }
 .side {
   position: sticky;
+  z-index: 5;
   top: 16px;
 }
 .flex1 {

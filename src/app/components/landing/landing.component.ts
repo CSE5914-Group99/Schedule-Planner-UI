@@ -69,18 +69,18 @@ export class LandingComponent {
   }
 
   read(): ScheduleItem[] {
-  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-    const raw = localStorage.getItem('schedule_data');
-    return raw ? JSON.parse(raw) : [];
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem('schedule_data');
+      return raw ? JSON.parse(raw) : [];
+    }
+    return [];
   }
-  return [];
-}
 
-write(list: ScheduleItem[]) {
-  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-    localStorage.setItem('schedule_data', JSON.stringify(list));
+  write(list: ScheduleItem[]) {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem('schedule_data', JSON.stringify(list));
+    }
   }
-}
 
   refresh() {
     this.items = this.read();
