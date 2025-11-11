@@ -1,0 +1,121 @@
+<div class="schedule-list-container">
+  <header class="page-header">
+    <button class="btn back-btn" (click)="goBack()">
+      ← Back
+    </button>
+    <h1>My Schedules</h1>
+    <button class="btn primary-btn" (click)="createNew()">
+      + New Schedule
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading schedules...</p>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (!loading() && schedules().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📅</div>
+      <h2>No Schedules Yet</h2>
+      <p>Create your first schedule to get started!</p>
+      <button class="btn primary-btn large" (click)="createNew()">
+        Create Schedule
+      </button>
+    </div>
+  }
+
+  @if (!loading() && schedules().length > 0) {
+    @if (hasUnsavedSchedules()) {
+      <div class="warning-message">
+        ⚠️ Some schedules are not saved to the backend yet. They cannot be edited, deleted, or favorited until saved.
+      </div>
+    }
+    
+    <div class="schedules-grid">
+      @for (schedule of schedules(); track schedule.id || schedule.name; let idx = $index) {
+        <div class="schedule-card" (click)="viewSchedule(schedule)">
+          <div class="card-header">
+            <div class="card-title-row">
+              <h3>{{ schedule.name }}</h3>
+              <button 
+                class="favorite-btn"
+                [class.active]="schedule.favorite"
+                (click)="toggleFavorite(schedule, $event)"
+                [disabled]="!schedule.id"
+                [title]="schedule.id ? 'Set as favorite' : 'Save schedule first'">
+                @if (schedule.favorite) {
+                  ⭐
+                } @else {
+                  ☆
+                }
+              </button>
+            </div>
+            <p class="schedule-summary">{{ getScheduleSummary(schedule) }}</p>
+          </div>
+
+          <div class="card-body">
+            <div class="schedule-preview">
+              @if (schedule.courses.length > 0) {
+                <div class="preview-section">
+                  <strong>Courses:</strong>
+                  <ul>
+                    @for (course of schedule.courses.slice(0, 3); track course.id || course.courseId; let i = $index) {
+                      <li>{{ course.courseId }} - {{ course.title }}</li>
+                    }
+                    @if (schedule.courses.length > 3) {
+                      <li class="more">+ {{ schedule.courses.length - 3 }} more</li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (schedule.events.length > 0) {
+                <div class="preview-section">
+                  <strong>Events:</strong>
+                  <ul>
+                    @for (event of schedule.events.slice(0, 3); track event.id || event.title; let j = $index) {
+                      <li>{{ event.title }}</li>
+                    }
+                    @if (schedule.events.length > 3) {
+                      <li class="more">+ {{ schedule.events.length - 3 }} more</li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button 
+              class="btn edit-btn"
+              (click)="editSchedule(schedule, $event)"
+              [disabled]="!schedule.id">
+              Edit
+            </button>
+            <button 
+              class="btn delete-btn"
+              (click)="deleteSchedule(schedule, $event)"
+              [disabled]="!schedule.id">
+              Delete
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

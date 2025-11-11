@@ -1,0 +1,35 @@
+.login-card {
+  max-width: 420px;
+  margin: 2rem auto;
+  padding: 1.25rem;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  background: #fff;
+}
+.login-card h2,
+.login-card h3 {
+  margin: 0 0 0.75rem 0;
+}
+.login-card label {
+  display: block;
+  margin: 0.5rem 0;
+}
+.login-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem;
+  margin-top: 0.25rem;
+}
+.actions { margin-top: 0.75rem; }
+.btn.google { background: #4285f4; color: white; border: none; padding: 0.5rem 0.75rem; }
+.divider { text-align:center; margin: 1rem 0; color: #777; }
+.message { margin-top: 0.75rem; color: #333; font-size: 0.95rem; }
+
+/* center the login wrapper in the available page area (below the fixed header) */
+.login-wrapper {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}

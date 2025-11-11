@@ -1,0 +1,170 @@
+<div class="schedule-builder-container">
+  <!-- Header -->
+  <header class="builder-header">
+    <div class="header-left">
+      <button class="btn back-btn" (click)="goBack()">
+        ← Back
+      </button>
+      <div class="name-input-group">
+        <label for="scheduleName" class="name-label">Schedule Name:</label>
+        <input 
+          id="scheduleName"
+          type="text" 
+          class="schedule-name-input"
+          [class.error]="errorMessage()?.includes('schedule name')"
+          [value]="schedule()?.name || ''"
+          (input)="updateScheduleName($any($event.target).value)"
+          placeholder="Enter schedule name (required)">
+      </div>
+    </div>
+    <div class="header-right">
+      @if (hasUnsavedChanges()) {
+        <span class="unsaved-indicator">● Unsaved changes</span>
+      }
+      <button class="btn save-btn" (click)="saveSchedule()" [disabled]="saving()">
+        @if (saving()) {
+          Saving...
+        } @else {
+          💾 Save Schedule
+        }
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-section">
+      <button class="btn primary-btn" (click)="openCourseDialog()">
+        + Add Course
+      </button>
+      <button class="btn secondary-btn" (click)="openEventDialog()">
+        + Add Event
+      </button>
+      <button class="btn save-btn-toolbar" (click)="saveSchedule()" [disabled]="saving()">
+        @if (saving()) {
+          💾 Saving...
+        } @else {
+          💾 Save Schedule
+        }
+      </button>
+    </div>
+
+    <div class="toolbar-section">
+      <label>
+        Start Hour:
+        <input 
+          type="number" 
+          min="0" 
+          max="23"
+          [value]="startHour()"
+          (change)="startHour.set(+$any($event.target).value); updateTimeRange()"
+          class="time-input">
+      </label>
+      <label>
+        End Hour:
+        <input 
+          type="number" 
+          min="0" 
+          max="23"
+          [value]="endHour()"
+          (change)="endHour.set(+$any($event.target).value); updateTimeRange()"
+          class="time-input">
+      </label>
+      <label class="checkbox-label">
+        <input 
+          type="checkbox" 
+          [checked]="showWeekend()"
+          (change)="toggleWeekend()">
+        Show Weekend
+      </label>
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  @if (schedule()) {
+    <div class="calendar-container">
+      <div class="calendar-grid" [style.grid-template-columns]="'80px repeat(' + visibleDays().length + ', 1fr)'">
+        <!-- Header Row -->
+        <div class="calendar-cell header-cell corner-cell">Time</div>
+        @for (day of visibleDays(); track day) {
+          <div class="calendar-cell header-cell day-header">{{ day }}</div>
+        }
+
+        <!-- Time Slots -->
+        @for (timeSlot of timeSlots(); track timeSlot) {
+          <div class="calendar-cell time-cell">{{ timeSlot }}</div>
+          
+          @for (day of visibleDays(); track day) {
+            <div 
+              class="calendar-cell slot-cell"
+              (click)="onSlotClick(day, timeSlot)">
+              @for (item of getItemsInSlot(day, timeSlot); track item.id) {
+                @if (item.startTime.startsWith(timeSlot.split(':')[0])) {
+                  <div 
+                    class="schedule-item"
+                    [class.course-item]="item.type === 'course'"
+                    [class.event-item]="item.type === 'event'"
+                    [style.background]="item.color ? 'linear-gradient(135deg, ' + item.color + ' 0%, ' + item.color + 'dd 100%)' : null"
+                    [style.grid-row]="'span ' + calculateItemSpan(item)"
+                    (click)="onItemClick(item, $event)">
+                    <div class="item-content">
+                      <div class="item-title">{{ item.title }}</div>
+                      @if (item.instructor) {
+                        <div class="item-subtitle">{{ item.instructor }}</div>
+                      }
+                      @if (item.description && !item.instructor) {
+                        <div class="item-subtitle">{{ item.description }}</div>
+                      }
+                      <div class="item-time">{{ item.startTime }} - {{ item.endTime }}</div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Course Dialog -->
+  @if (showCourseDialog()) {
+    <div class="dialog-overlay" (click)="closeCourseDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <app-course-dialog
+          [course]="editingCourse()"
+          (save)="saveCourse($event)"
+          (delete)="deleteCourse($event)"
+          (cancel)="closeCourseDialog()">
+        </app-course-dialog>
+      </div>
+    </div>
+  }
+
+  <!-- Event Dialog -->
+  @if (showEventDialog()) {
+    <div class="dialog-overlay" (click)="closeEventDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <app-event-dialog
+          [event]="editingEvent()"
+          (save)="saveEvent($event)"
+          (delete)="deleteEvent($event)"
+          (cancel)="closeEventDialog()">
+        </app-event-dialog>
+      </div>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (showSuccessMessage()) {
+    <div class="success-toast">
+      ✓ Schedule saved successfully!
+    </div>
+  }
+</div>
