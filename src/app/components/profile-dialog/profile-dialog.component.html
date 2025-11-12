@@ -1,0 +1,26 @@
+<div class="header-row">
+  <img [src]="image" alt="Profile photo" class="profile-photo" />
+  <h2>Edit Profile</h2>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="save()">
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Display Name</mat-label>
+    <input matInput formControlName="displayName" />
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Email</mat-label>
+    <input matInput formControlName="email" />
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Preferences</mat-label>
+    <textarea matInput formControlName="preferences"></textarea>
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-button type="button" (click)="close()">Cancel</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Save</button>
+  </div>
+</form>

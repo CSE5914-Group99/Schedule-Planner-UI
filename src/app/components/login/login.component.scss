@@ -20,10 +20,25 @@
   padding: 0.4rem;
   margin-top: 0.25rem;
 }
-.actions { margin-top: 0.75rem; }
-.btn.google { background: #4285f4; color: white; border: none; padding: 0.5rem 0.75rem; }
-.divider { text-align:center; margin: 1rem 0; color: #777; }
-.message { margin-top: 0.75rem; color: #333; font-size: 0.95rem; }
+.actions {
+  margin-top: 0.75rem;
+}
+.btn.google {
+  background: #4285f4;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+}
+.divider {
+  text-align: center;
+  margin: 1rem 0;
+  color: #777;
+}
+.message {
+  margin-top: 0.75rem;
+  color: #333;
+  font-size: 0.95rem;
+}
 
 /* center the login wrapper in the available page area (below the fixed header) */
 .login-wrapper {

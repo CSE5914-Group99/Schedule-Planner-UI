@@ -8,7 +8,7 @@ import { Event, DayOfWeek } from '../../models/schedule.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './event-dialog.component.html',
-  styleUrls: ['./event-dialog.component.scss']
+  styleUrls: ['./event-dialog.component.scss'],
 })
 export class EventDialogComponent implements OnInit {
   event = input<Event | null>(null);
@@ -23,7 +23,15 @@ export class EventDialogComponent implements OnInit {
   endTime = signal('09:00');
   selectedDays = signal<Set<DayOfWeek>>(new Set());
 
-  allDays: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  allDays: DayOfWeek[] = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   isEdit = signal(false);
   currentEventId = signal<string | undefined>(undefined);
@@ -72,7 +80,7 @@ export class EventDialogComponent implements OnInit {
       description: this.description().trim() || undefined,
       startTime: this.startTime(),
       endTime: this.endTime(),
-      repeatDays: Array.from(this.selectedDays())
+      repeatDays: Array.from(this.selectedDays()),
     };
 
     this.save.emit(event);

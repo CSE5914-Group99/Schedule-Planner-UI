@@ -3,7 +3,9 @@
     <h2>Sign in</h2>
 
     <div class="actions">
-      <button class="btn google" (click)="signInWithGoogle()" [disabled]="loading()">Sign in with Google</button>
+      <button class="btn google" (click)="signInWithGoogle()" [disabled]="loading()">
+        Sign in with Google
+      </button>
     </div>
 
     <div class="message" *ngIf="message()">{{ message() }}</div>

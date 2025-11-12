@@ -1,7 +1,15 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { BackendService } from './backend.service';
 import { AuthService } from './auth.service';
-import { Schedule, Course, Event, SchedulePayload, CoursePayload, EventPayload, DayOfWeek } from '../models/schedule.model';
+import {
+  Schedule,
+  Course,
+  Event,
+  SchedulePayload,
+  CoursePayload,
+  EventPayload,
+  DayOfWeek,
+} from '../models/schedule.model';
 import { Observable, map, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -11,14 +19,12 @@ export class ScheduleService {
 
   // Current schedule being edited
   currentSchedule = signal<Schedule | null>(null);
-  
+
   // All user schedules
   schedules = signal<Schedule[]>([]);
 
   // Computed properties
-  favoriteSchedule = computed(() => 
-    this.schedules().find(s => s.favorite) || null
-  );
+  favoriteSchedule = computed(() => this.schedules().find((s) => s.favorite) || null);
 
   hasUnsavedChanges = signal<boolean>(false);
 
@@ -38,7 +44,7 @@ export class ScheduleService {
 
   // Load schedule by ID
   loadSchedule(scheduleId: number): void {
-    const schedule = this.schedules().find(s => s.id === scheduleId);
+    const schedule = this.schedules().find((s) => s.id === scheduleId);
     if (schedule) {
       this.currentSchedule.set(JSON.parse(JSON.stringify(schedule))); // Deep clone
       this.hasUnsavedChanges.set(false);
@@ -71,7 +77,7 @@ export class ScheduleService {
     const current = this.currentSchedule();
     if (!current) return;
 
-    const index = current.courses.findIndex(c => c.id === courseId);
+    const index = current.courses.findIndex((c) => c.id === courseId);
     if (index >= 0) {
       current.courses[index] = { ...current.courses[index], ...updates };
       this.currentSchedule.set({ ...current });
@@ -84,7 +90,7 @@ export class ScheduleService {
     const current = this.currentSchedule();
     if (!current) return;
 
-    current.courses = current.courses.filter(c => c.id !== courseId);
+    current.courses = current.courses.filter((c) => c.id !== courseId);
     this.currentSchedule.set({ ...current });
     this.hasUnsavedChanges.set(true);
   }
@@ -109,7 +115,7 @@ export class ScheduleService {
     const current = this.currentSchedule();
     if (!current) return;
 
-    const index = current.events.findIndex(e => e.id === eventId);
+    const index = current.events.findIndex((e) => e.id === eventId);
     if (index >= 0) {
       current.events[index] = { ...current.events[index], ...updates };
       this.currentSchedule.set({ ...current });
@@ -122,7 +128,7 @@ export class ScheduleService {
     const current = this.currentSchedule();
     if (!current) return;
 
-    current.events = current.events.filter(e => e.id !== eventId);
+    current.events = current.events.filter((e) => e.id !== eventId);
     this.currentSchedule.set({ ...current });
     this.hasUnsavedChanges.set(true);
   }
@@ -141,7 +147,7 @@ export class ScheduleService {
   saveCurrentSchedule(): Observable<any> {
     const user = this.auth.currentUser();
     const schedule = this.currentSchedule();
-    
+
     if (!user || !schedule) {
       throw new Error('No user or schedule to save');
     }
@@ -152,19 +158,19 @@ export class ScheduleService {
       // Update existing schedule - include scheduleId in payload
       const updatePayload = {
         ...payload,
-        scheduleId: schedule.id
+        scheduleId: schedule.id,
       };
       return this.backend.saveSchedule(user.id, updatePayload).pipe(
-        tap(response => {
+        tap((response) => {
           console.log('Schedule updated:', response);
           this.hasUnsavedChanges.set(false);
           this.refreshSchedules();
-        })
+        }),
       );
     } else {
       // Create new schedule
       return this.backend.addSchedule(user.id, payload).pipe(
-        tap(response => {
+        tap((response) => {
           console.log('Schedule created:', response);
           if (response.id || response.scheduleId) {
             schedule.id = response.id || response.scheduleId;
@@ -172,7 +178,7 @@ export class ScheduleService {
           }
           this.hasUnsavedChanges.set(false);
           this.refreshSchedules();
-        })
+        }),
       );
     }
   }
@@ -186,14 +192,14 @@ export class ScheduleService {
 
     return this.backend.deleteSchedule(user.id, scheduleId).pipe(
       tap(() => {
-        this.schedules.set(this.schedules().filter(s => s.id !== scheduleId));
-        
+        this.schedules.set(this.schedules().filter((s) => s.id !== scheduleId));
+
         // Clear current schedule if it was deleted
         const current = this.currentSchedule();
         if (current && current.id === scheduleId) {
           this.currentSchedule.set(null);
         }
-      })
+      }),
     );
   }
 
@@ -209,7 +215,7 @@ export class ScheduleService {
     console.log('Current schedules:', this.schedules());
 
     // First, get the schedule to update
-    const schedule = this.schedules().find(s => s.id === scheduleId);
+    const schedule = this.schedules().find((s) => s.id === scheduleId);
     if (!schedule) {
       console.error('Schedule not found in schedules array. Looking for ID:', scheduleId);
       console.log('Available schedules:', this.schedules());
@@ -225,7 +231,7 @@ export class ScheduleService {
     // Include scheduleId in payload for update
     const updatePayload = {
       ...payload,
-      scheduleId: scheduleId
+      scheduleId: scheduleId,
     };
 
     console.log('Sending payload to backend:', updatePayload);
@@ -235,13 +241,13 @@ export class ScheduleService {
       tap((response) => {
         console.log('Backend response:', response);
         // Update local state: unfavorite all others and favorite this one
-        const updatedSchedules = this.schedules().map(s => ({
+        const updatedSchedules = this.schedules().map((s) => ({
           ...s,
-          favorite: s.id === scheduleId
+          favorite: s.id === scheduleId,
         }));
         console.log('Updated schedules:', updatedSchedules);
         this.schedules.set(updatedSchedules);
-      })
+      }),
     );
   }
 
@@ -258,36 +264,36 @@ export class ScheduleService {
     this.backend.getSchedules(user.id).subscribe({
       next: (data: any[]) => {
         console.log('Received schedules from backend:', data);
-        const schedules = data.map(item => this.backendToSchedule(item));
+        const schedules = data.map((item) => this.backendToSchedule(item));
         console.log('Parsed schedules:', schedules);
         this.schedules.set(schedules);
         console.log('Favorite schedule after refresh:', this.favoriteSchedule());
       },
       error: (err) => {
         console.error('Failed to load schedules:', err);
-      }
+      },
     });
   }
 
   // Helper: Convert Schedule to backend payload
   private scheduleToPayload(schedule: Schedule): SchedulePayload {
-    const items: CoursePayload[] = schedule.courses.map(course => ({
+    const items: CoursePayload[] = schedule.courses.map((course) => ({
       courseId: course.courseId,
       sectionId: null,
       timesDays: this.formatTimesDays(course.repeatDays, course.startTime, course.endTime),
-      teacherName: course.instructor
+      teacherName: course.instructor,
     }));
 
-    const activities: EventPayload[] = schedule.events.map(event => ({
+    const activities: EventPayload[] = schedule.events.map((event) => ({
       description: event.title,
-      timesDays: this.formatTimesDays(event.repeatDays, event.startTime, event.endTime)
+      timesDays: this.formatTimesDays(event.repeatDays, event.startTime, event.endTime),
     }));
 
     return {
       name: schedule.name,
       favorite: schedule.favorite, // Backend API expects 'favorite'
       items,
-      activities
+      activities,
     };
   }
 
@@ -300,7 +306,7 @@ export class ScheduleService {
   // Helper: Convert backend data to Schedule
   private backendToSchedule(data: any): Schedule {
     console.log('Converting backend data to schedule:', data);
-    
+
     const courses: Course[] = (data.items || []).map((item: any, index: number) => {
       const parsed = this.parseTimesDays(item.timesDays || item.times_days || '');
       return {
@@ -311,7 +317,7 @@ export class ScheduleService {
         startTime: parsed.startTime,
         endTime: parsed.endTime,
         repeatDays: parsed.repeatDays,
-        color: this.generateColor('course', index)
+        color: this.generateColor('course', index),
       };
     });
 
@@ -324,7 +330,7 @@ export class ScheduleService {
         startTime: parsed.startTime,
         endTime: parsed.endTime,
         repeatDays: parsed.repeatDays,
-        color: this.generateColor('event', index)
+        color: this.generateColor('event', index),
       };
     });
 
@@ -336,19 +342,23 @@ export class ScheduleService {
       events,
       //: data.difficultyScore || data.difficulty_score,
       createdAt: data.createdAt || data.created_at,
-      updatedAt: data.updatedAt || data.updated_at
+      updatedAt: data.updatedAt || data.updated_at,
     };
-    
+
     console.log('Converted schedule:', schedule);
     return schedule;
   }
 
   // Helper: Parse backend timesDays string
-  private parseTimesDays(timesDays: string): { repeatDays: DayOfWeek[], startTime: string, endTime: string } {
-    const result: { repeatDays: DayOfWeek[], startTime: string, endTime: string } = {
+  private parseTimesDays(timesDays: string): {
+    repeatDays: DayOfWeek[];
+    startTime: string;
+    endTime: string;
+  } {
+    const result: { repeatDays: DayOfWeek[]; startTime: string; endTime: string } = {
       repeatDays: [],
       startTime: '08:00',
-      endTime: '09:00'
+      endTime: '09:00',
     };
 
     if (!timesDays) return result;
@@ -363,8 +373,16 @@ export class ScheduleService {
     // Extract days
     const daysStr = timesDays.split(/\d{1,2}:\d{2}-\d{1,2}:\d{2}/)[0].trim();
     if (daysStr) {
-      const dayNames: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      dayNames.forEach(day => {
+      const dayNames: DayOfWeek[] = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ];
+      dayNames.forEach((day) => {
         if (daysStr.includes(day)) {
           result.repeatDays.push(day);
         }

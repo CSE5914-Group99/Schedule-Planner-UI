@@ -1,3 +1,8 @@
+.landing {
+  padding-top: var(--header-height);
+  padding-bottom: var(--footer-height);
+}
+
 .title {
   margin: 12px 0 6px;
 }
@@ -20,6 +25,7 @@
 .side {
   position: sticky;
   top: 16px;
+  z-index: 5;
 }
 .flex1 {
   min-width: 0;
@@ -147,7 +153,9 @@ textarea {
   padding-bottom: 110px; /* adjust if your footer is taller */
 }
 
-.repeat-days input { margin-right:4px }
+.repeat-days input {
+  margin-right: 4px;
+}
 
 .favorite-info {
   margin-bottom: 12px;

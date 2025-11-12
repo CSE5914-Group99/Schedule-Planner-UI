@@ -6,7 +6,7 @@ import { BackendService } from '../../services/backend.service';
 import { AuthService } from '../../services/auth.service';
 import { ScheduleService } from '../../services/schedule.service';
 import { ByDayTimePipe } from '../../pipes/by-day-time.pipe';
-import { ScheduleItem } from '../../models/schedule-item';
+import { ScheduleItem } from '../../models/schedule-item.model';
 
 @Component({
   selector: 'app-landing',
@@ -117,7 +117,9 @@ export class LandingComponent implements OnInit {
     const nowKey = new Date().toISOString().slice(0, 16);
     this.upcoming = this.items
       .filter((x) => (x.date || '') + 'T' + (x.start || '') >= nowKey)
-      .sort((a, b) => ((a.date || '') + (a.start || '')).localeCompare((b.date || '') + (b.start || '')))
+      .sort((a, b) =>
+        ((a.date || '') + (a.start || '')).localeCompare((b.date || '') + (b.start || '')),
+      )
       .slice(0, 5);
   }
 
@@ -127,11 +129,7 @@ export class LandingComponent implements OnInit {
     this.health = null;
     this.backend.testEndpoint().subscribe({
       next: (res) => {
-        try {
-          this.health = typeof res === 'string' ? res : JSON.stringify(res, null, 2);
-        } catch {
-          this.health = String(res);
-        }
+        this.health = res.status;
         this.healthLoading = false;
       },
       error: (err) => {

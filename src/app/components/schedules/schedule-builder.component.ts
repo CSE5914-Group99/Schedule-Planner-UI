@@ -13,7 +13,7 @@ import { EventDialogComponent } from './event-dialog.component';
   standalone: true,
   imports: [CommonModule, FormsModule, CourseDialogComponent, EventDialogComponent],
   templateUrl: './schedule-builder.component.html',
-  styleUrls: ['./schedule-builder.component.scss']
+  styleUrls: ['./schedule-builder.component.scss'],
 })
 export class ScheduleBuilderComponent implements OnInit {
   private scheduleService = inject(ScheduleService);
@@ -31,18 +31,24 @@ export class ScheduleBuilderComponent implements OnInit {
   editingEvent = signal<Event | null>(null);
 
   // Calendar configuration
-  days: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  days: DayOfWeek[] = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
   timeSlots = signal<string[]>([]);
-  
+
   // View configuration
   startHour = signal(8);
   endHour = signal(20);
   showWeekend = signal(false);
 
   // Computed properties
-  visibleDays = computed(() => 
-    this.showWeekend() ? this.days : this.days.slice(0, 5)
-  );
+  visibleDays = computed(() => (this.showWeekend() ? this.days : this.days.slice(0, 5)));
 
   // All schedule items (courses + events) for display
   allItems = computed(() => {
@@ -52,7 +58,7 @@ export class ScheduleBuilderComponent implements OnInit {
     const items: ScheduleItem[] = [];
 
     // Add courses
-    sched.courses.forEach(course => {
+    sched.courses.forEach((course) => {
       items.push({
         id: course.id || '',
         title: course.courseId,
@@ -62,12 +68,12 @@ export class ScheduleBuilderComponent implements OnInit {
         startTime: course.startTime,
         endTime: course.endTime,
         repeatDays: course.repeatDays,
-        color: course.color
+        color: course.color,
       });
     });
 
     // Add events
-    sched.events.forEach(event => {
+    sched.events.forEach((event) => {
       items.push({
         id: event.id || '',
         title: event.title,
@@ -76,7 +82,7 @@ export class ScheduleBuilderComponent implements OnInit {
         startTime: event.startTime,
         endTime: event.endTime,
         repeatDays: event.repeatDays,
-        color: event.color
+        color: event.color,
       });
     });
 
@@ -100,11 +106,11 @@ export class ScheduleBuilderComponent implements OnInit {
     }
 
     const scheduleId = this.route.snapshot.paramMap.get('id');
-    
+
     if (scheduleId && scheduleId !== 'new') {
       // Load existing schedule
       this.scheduleService.loadSchedule(Number(scheduleId));
-      
+
       if (!this.schedule()) {
         // Schedule not found, redirect to list
         this.router.navigate(['/schedules']);
@@ -137,14 +143,14 @@ export class ScheduleBuilderComponent implements OnInit {
     const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
     const slotTime = slotHour * 60 + slotMinute;
 
-    return items.filter(item => {
+    return items.filter((item) => {
       // Check if item occurs on this day
       if (!item.repeatDays.includes(day)) return false;
 
       // Parse item times
       const [startHour, startMinute] = item.startTime.split(':').map(Number);
       const [endHour, endMinute] = item.endTime.split(':').map(Number);
-      
+
       const itemStart = startHour * 60 + startMinute;
       const itemEnd = endHour * 60 + endMinute;
 
@@ -157,25 +163,25 @@ export class ScheduleBuilderComponent implements OnInit {
   calculateItemSpan(item: ScheduleItem): number {
     const [startHour, startMinute] = item.startTime.split(':').map(Number);
     const [endHour, endMinute] = item.endTime.split(':').map(Number);
-    
+
     const startMinutes = startHour * 60 + startMinute;
     const endMinutes = endHour * 60 + endMinute;
     const durationMinutes = endMinutes - startMinutes;
-    
+
     return Math.ceil(durationMinutes / 60);
   }
 
   // Calendar item click handlers
   onItemClick(item: ScheduleItem, event: MouseEvent) {
     event.stopPropagation();
-    
+
     if (item.type === 'course') {
-      const course = this.schedule()?.courses.find(c => c.id === item.id);
+      const course = this.schedule()?.courses.find((c) => c.id === item.id);
       if (course) {
         this.editCourse(course);
       }
     } else {
-      const evt = this.schedule()?.events.find(e => e.id === item.id);
+      const evt = this.schedule()?.events.find((e) => e.id === item.id);
       if (evt) {
         this.editEvent(evt);
       }
@@ -264,7 +270,7 @@ export class ScheduleBuilderComponent implements OnInit {
     const trimmedName = sched.name?.trim();
     if (!trimmedName || trimmedName === '') {
       this.errorMessage.set('Please enter a schedule name before saving');
-      
+
       // Focus on the name input
       setTimeout(() => {
         const nameInput = document.querySelector('.schedule-name-input') as HTMLInputElement;
@@ -273,14 +279,16 @@ export class ScheduleBuilderComponent implements OnInit {
           nameInput.select();
         }
       }, 100);
-      
+
       return;
     }
 
     // Warn about generic names but allow them
     const genericNames = ['untitled schedule', 'my new schedule', 'new schedule', 'schedule'];
     if (genericNames.includes(trimmedName.toLowerCase())) {
-      const confirmSave = confirm(`The schedule name "${trimmedName}" is quite generic. Are you sure you want to use this name?`);
+      const confirmSave = confirm(
+        `The schedule name "${trimmedName}" is quite generic. Are you sure you want to use this name?`,
+      );
       if (!confirmSave) {
         const nameInput = document.querySelector('.schedule-name-input') as HTMLInputElement;
         if (nameInput) {
@@ -298,7 +306,7 @@ export class ScheduleBuilderComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.showSuccessMessage.set(true);
-        
+
         // Hide success message after 3 seconds
         setTimeout(() => {
           this.showSuccessMessage.set(false);
@@ -308,7 +316,7 @@ export class ScheduleBuilderComponent implements OnInit {
         this.saving.set(false);
         this.errorMessage.set('Failed to save schedule. Please try again.');
         console.error('Save error:', err);
-      }
+      },
     });
   }
 

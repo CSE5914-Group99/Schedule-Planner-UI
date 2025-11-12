@@ -58,7 +58,12 @@ export class LoginComponent {
         next: (user: any) => {
           // user exists -> set authService and continue
           try {
-            this.authService.setUser({ id: user.id, email: user.email, username: user.username, google_uid: user.google_uid });
+            this.authService.setUser({
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              google_uid: user.google_uid,
+            });
           } catch {}
           this.message.set('Signed in. Redirecting...');
           this.loading.set(false);
@@ -72,7 +77,12 @@ export class LoginComponent {
               next: (created: any) => {
                 try {
                   const u = created || {};
-                  this.authService.setUser({ id: u.id, email: u.email, username: u.username, google_uid: u.google_uid });
+                  this.authService.setUser({
+                    id: u.id,
+                    email: u.email,
+                    username: u.username,
+                    google_uid: u.google_uid,
+                  });
                 } catch {}
                 this.message.set('Signed in. Redirecting...');
                 this.loading.set(false);
@@ -84,7 +94,14 @@ export class LoginComponent {
                   // race / already created by another process; try to fetch user and proceed
                   this.backend.getUserByGoogleUid(fbUser.uid).subscribe({
                     next: (user2: any) => {
-                      try { this.authService.setUser({ id: user2.id, email: user2.email, username: user2.username, google_uid: user2.google_uid }); } catch {}
+                      try {
+                        this.authService.setUser({
+                          id: user2.id,
+                          email: user2.email,
+                          username: user2.username,
+                          google_uid: user2.google_uid,
+                        });
+                      } catch {}
                       this.message.set('Signed in. Redirecting...');
                       this.loading.set(false);
                       this.router.navigate(['/landing']);
@@ -93,7 +110,7 @@ export class LoginComponent {
                       this.message.set('Signed in. Redirecting...');
                       this.loading.set(false);
                       this.router.navigate(['/landing']);
-                    }
+                    },
                   });
                   return;
                 }
@@ -110,7 +127,14 @@ export class LoginComponent {
           console.warn('Error checking user by google_uid', err);
           this.backend.createUser(payload).subscribe({
             next: (created: any) => {
-              try { this.authService.setUser({ id: created.id, email: created.email, username: created.username, google_uid: created.google_uid }); } catch {}
+              try {
+                this.authService.setUser({
+                  id: created.id,
+                  email: created.email,
+                  username: created.username,
+                  google_uid: created.google_uid,
+                });
+              } catch {}
               this.message.set('Signed in. Redirecting...');
               this.loading.set(false);
               this.router.navigate(['/landing']);
