@@ -140,3 +140,33 @@ textarea {
 .actions {
   margin-top: 10px;
 }
+
+/* Make room at page bottom so footer doesn't overlap floating forms */
+:host {
+  display: block;
+  padding-bottom: 110px; /* adjust if your footer is taller */
+}
+
+.repeat-days input { margin-right:4px }
+
+.favorite-info {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  color: #78350f;
+}
+
+.no-favorite-banner {
+  text-align: center;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}

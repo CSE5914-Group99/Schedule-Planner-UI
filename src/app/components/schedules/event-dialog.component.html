@@ -1,0 +1,86 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2>@if (isEdit()) { Edit Event } @else { Add Event }</h2>
+    <button class="close-btn" (click)="onCancel()">×</button>
+  </div>
+
+  <div class="dialog-body">
+    <div class="form-group">
+      <label for="title">Event Title <span class="required">*</span></label>
+      <input 
+        type="text" 
+        id="title"
+        class="form-control"
+        placeholder="e.g., Study Group, Gym"
+        [value]="title()"
+        (input)="title.set($any($event.target).value)">
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea 
+        id="description"
+        class="form-control textarea"
+        rows="3"
+        placeholder="Add notes or details about this event..."
+        [value]="description()"
+        (input)="description.set($any($event.target).value)"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="startTime">Start Time <span class="required">*</span></label>
+        <input 
+          type="time" 
+          id="startTime"
+          class="form-control"
+          [value]="startTime()"
+          (input)="startTime.set($any($event.target).value)">
+      </div>
+
+      <div class="form-group">
+        <label for="endTime">End Time <span class="required">*</span></label>
+        <input 
+          type="time" 
+          id="endTime"
+          class="form-control"
+          [value]="endTime()"
+          (input)="endTime.set($any($event.target).value)">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Repeat Days <span class="required">*</span></label>
+      <div class="days-selector">
+        @for (day of allDays; track day) {
+          <button 
+            type="button"
+            class="day-btn"
+            [class.selected]="isDaySelected(day)"
+            (click)="toggleDay(day)">
+            {{ day.substring(0, 3) }}
+          </button>
+        }
+      </div>
+      <small>Select the days this event repeats</small>
+    </div>
+  </div>
+
+  <div class="dialog-footer">
+    <div class="footer-left">
+      @if (isEdit()) {
+        <button class="btn delete-btn" (click)="onDelete()">
+          Delete Event
+        </button>
+      }
+    </div>
+    <div class="footer-right">
+      <button class="btn cancel-btn" (click)="onCancel()">
+        Cancel
+      </button>
+      <button class="btn save-btn" (click)="onSave()">
+        @if (isEdit()) { Update } @else { Add } Event
+      </button>
+    </div>
+  </div>
+</div>

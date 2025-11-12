@@ -14,25 +14,47 @@
 </section>
 
 <div class="layout">
-  <!-- Left Difficulity -->
+  <!-- Left Difficulty -->
   <aside class="card side">
     <h4>Estimated Difficulty</h4>
     <p class="muted">
-      This schedule has an estimated difficulty of <strong>{{ items.length * 2 }}</strong> hours of
-      work per week
+      This schedule has an estimated difficulty of <strong>{{ items.length * 2 }}</strong> hours per
+      week
     </p>
     <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
+
+    <div class="divider"></div>
+
+    <h4>Backend</h4>
+    <button class="btn" (click)="checkBackend()">Check backend health</button>
+    <div class="muted" *ngIf="healthLoading">Checking backend...</div>
+    <pre *ngIf="health" class="muted" style="white-space:pre-wrap; max-height:6rem; overflow:auto;">{{ health }}</pre>
+
+    <div class="divider"></div>
+
+    <button class="btn" (click)="router.navigate(['/schedule/new'])">Open Schedule Builder</button>
+    <button class="btn" (click)="router.navigate(['/schedules'])">View saved schedules</button>
   </aside>
 
-  <!-- calender -->
+  <!-- calendar (read-only favorite schedule preview) -->
   <section class="card flex1">
+    <h4 class="muted">Favorite schedule preview</h4>
+    
+    @if (favoriteSchedule()) {
+      <div class="favorite-info">
+        <strong>{{ favoriteSchedule()!.name }}</strong> ⭐
+      </div>
+    } @else {
+      <p class="muted no-favorite-banner">No favorite schedule selected. Visit "View saved schedules" to mark a schedule as favorite!</p>
+    }
+    
     <div class="weekgrid">
       <div class="head cell">Time</div>
       <div class="head cell" *ngFor="let d of days">{{ d }}</div>
 
       <ng-container *ngFor="let t of times">
         <div class="time cell">{{ t }}</div>
-        <div class="slot cell" *ngFor="let d of days" (click)="quickAdd(d, t)">
+        <div class="slot cell" *ngFor="let d of days">
           <div class="slot-items">
             <div class="pill" *ngFor="let it of items | byDayTime: d : t">
               {{ it.title }}
@@ -42,42 +64,6 @@
       </ng-container>
     </div>
   </section>
-
-  <!-- Right munipulate -->
-  <aside class="card side">
-    <button class="btn" (click)="open('class')">Add Class</button>
-    <button class="btn" (click)="open('event')">Add Event</button>
-
-    <div class="divider"></div>
-
-    <h4>All Items</h4>
-    <div class="list">
-      <div class="row" *ngFor="let it of items">
-        <span class="tag">{{ it.type }}</span>
-        <span class="grow">{{ it.title }}</span>
-        <span class="muted">{{ it.date }} {{ it.start }}–{{ it.end }}</span>
-        <button class="link danger" (click)="remove(it.id)">Remove</button>
-      </div>
-    </div>
-  </aside>
 </div>
 
-<!-- format -->
-<section class="card mt" *ngIf="showForm">
-  <h3>Add {{ form.type }}</h3>
-  <div class="form-grid">
-    <label>Title <input [(ngModel)]="form.title" /></label>
-    <label>Date <input type="date" [(ngModel)]="form.date" /></label>
-    <label>Start <input type="time" [(ngModel)]="form.start" /></label>
-    <label>End <input type="time" [(ngModel)]="form.end" /></label>
-    <label>Location <input [(ngModel)]="form.location" /></label>
-  </div>
-  <label
-    >Notes
-    <textarea [(ngModel)]="form.notes"></textarea>
-  </label>
-  <div class="actions">
-    <button class="btn" (click)="add()">Save</button>
-    <button class="btn ghost" (click)="cancel()">Cancel</button>
-  </div>
-</section>
+<!-- builder form removed on landing (read-only page) -->

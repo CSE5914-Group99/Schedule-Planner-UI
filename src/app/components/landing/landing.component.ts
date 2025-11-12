@@ -1,33 +1,12 @@
-import { Component, Pipe, PipeTransform } from '@angular/core';
+import { Component, inject, OnInit, computed, effect } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-function uuid() {
-  return 'xxxxxxxx'.replace(/x/g, () => ((Math.random() * 16) | 0).toString(16));
-}
-
-interface ScheduleItem {
-  id: string;
-  title: string;
-  date: string; // YYYY-MM-DD
-  start: string; // HH:MM
-  end: string; // HH:MM
-  location?: string;
-  notes?: string;
-  type: 'class' | 'event';
-}
-
-@Pipe({ name: 'byDayTime', standalone: true })
-export class ByDayTimePipe implements PipeTransform {
-  transform(list: ScheduleItem[], dayName: string, startHHmm: string) {
-    if (!Array.isArray(list)) return [];
-    return list.filter((x) => {
-      const d = new Date(x.date + 'T00:00:00');
-      const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
-      return weekday === dayName && x.start === startHHmm;
-    });
-  }
-}
+import { BackendService } from '../../services/backend.service';
+import { AuthService } from '../../services/auth.service';
+import { ScheduleService } from '../../services/schedule.service';
+import { ByDayTimePipe } from '../../pipes/by-day-time.pipe';
+import { ScheduleItem } from '../../models/schedule-item';
 
 @Component({
   selector: 'app-landing',
@@ -36,7 +15,7 @@ export class ByDayTimePipe implements PipeTransform {
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit {
   days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   times = [
     '08:00',
@@ -53,97 +32,117 @@ export class LandingComponent {
 
   items: ScheduleItem[] = [];
   upcoming: ScheduleItem[] = [];
-  showForm = false;
-  form: Partial<ScheduleItem> = {
-    type: 'class',
-    title: '',
-    date: '',
-    start: '',
-    end: '',
-    location: '',
-    notes: '',
-  };
+
+  // Backend health state
+  health: string | null = null;
+  healthLoading = false;
+
+  // inject services
+  private backend = inject(BackendService);
+  private auth = inject(AuthService);
+  private scheduleService = inject(ScheduleService);
+  public router = inject(Router);
+
+  // Use computed signal from service
+  favoriteSchedule = this.scheduleService.favoriteSchedule;
 
   constructor() {
-    this.refresh();
+    // Use effect to react to favorite schedule changes
+    effect(() => {
+      const favorite = this.favoriteSchedule();
+      console.log('Favorite schedule changed:', favorite);
+      if (favorite) {
+        this.mapScheduleToItems(favorite);
+      } else {
+        console.log('No favorite schedule found');
+        this.items = [];
+        this.upcoming = [];
+      }
+    });
   }
 
-  read(): ScheduleItem[] {
-  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-    const raw = localStorage.getItem('schedule_data');
-    return raw ? JSON.parse(raw) : [];
+  ngOnInit() {
+    console.log('Landing component initialized');
+    // Load schedules from backend
+    this.scheduleService.refreshSchedules();
   }
-  return [];
-}
 
-write(list: ScheduleItem[]) {
-  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-    localStorage.setItem('schedule_data', JSON.stringify(list));
+  mapScheduleToItems(schedule: any) {
+    console.log('Mapping schedule to items:', schedule);
+    const mapped: ScheduleItem[] = [];
+
+    // Map courses
+    schedule.courses?.forEach((course: any) => {
+      console.log('Processing course:', course);
+      course.repeatDays?.forEach((day: string) => {
+        mapped.push({
+          id: course.id || `course-${course.courseId}`,
+          title: course.courseId,
+          courseId: course.courseId,
+          instructor: course.instructor,
+          date: undefined,
+          start: course.startTime,
+          end: course.endTime,
+          repeats: true,
+          repeatDays: [day],
+          type: 'class',
+        });
+      });
+    });
+
+    // Map events
+    schedule.events?.forEach((event: any) => {
+      console.log('Processing event:', event);
+      event.repeatDays?.forEach((day: string) => {
+        mapped.push({
+          id: event.id || `event-${event.title}`,
+          title: event.title,
+          description: event.description,
+          date: undefined,
+          start: event.startTime,
+          end: event.endTime,
+          repeats: true,
+          repeatDays: [day],
+          type: 'event',
+        });
+      });
+    });
+
+    console.log('Mapped items:', mapped);
+    this.items = mapped;
+    this.calculateUpcoming();
   }
-}
 
-  refresh() {
-    this.items = this.read();
+  calculateUpcoming() {
     const nowKey = new Date().toISOString().slice(0, 16);
     this.upcoming = this.items
-      .filter((x) => x.date + 'T' + x.start >= nowKey)
-      .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start))
+      .filter((x) => (x.date || '') + 'T' + (x.start || '') >= nowKey)
+      .sort((a, b) => ((a.date || '') + (a.start || '')).localeCompare((b.date || '') + (b.start || '')))
       .slice(0, 5);
   }
 
-  open(type: 'class' | 'event') {
-    this.form = { type, title: '', date: '', start: '', end: '', location: '', notes: '' };
-    this.showForm = true;
-  }
-  cancel() {
-    this.showForm = false;
-  }
-
-  quickAdd(day: string, startHHmm: string) {
-    const today = new Date();
-    const diffToMonday = (today.getDay() + 6) % 7;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - diffToMonday);
-
-    const dayIndex = this.days.indexOf(day);
-    const target = new Date(monday);
-    target.setDate(monday.getDate() + dayIndex);
-
-    const date = target.toISOString().slice(0, 10);
-    const [hh, mm] = startHHmm.split(':');
-    const end = String(parseInt(hh, 10) + 1).padStart(2, '0') + ':' + mm;
-
-    this.form = { type: 'class', title: '', date, start: startHHmm, end, location: '', notes: '' };
-    this.showForm = true;
+  // call backend health endpoint and show result
+  checkBackend() {
+    this.healthLoading = true;
+    this.health = null;
+    this.backend.testEndpoint().subscribe({
+      next: (res) => {
+        try {
+          this.health = typeof res === 'string' ? res : JSON.stringify(res, null, 2);
+        } catch {
+          this.health = String(res);
+        }
+        this.healthLoading = false;
+      },
+      error: (err) => {
+        this.health = err?.message ? `Error: ${err.message}` : `Error: ${JSON.stringify(err)}`;
+        this.healthLoading = false;
+        console.error('Backend testEndpoint error:', err);
+      },
+    });
   }
 
   recalc() {
-    /* 占位：当前左侧卡片显示 items.length * 2 */
-  }
-
-  add() {
-    if (!this.form.title || !this.form.date || !this.form.start || !this.form.end) return;
-    const newItem: ScheduleItem = {
-      id: uuid(),
-      title: this.form.title!,
-      date: this.form.date!,
-      start: this.form.start!,
-      end: this.form.end!,
-      location: this.form.location,
-      notes: this.form.notes,
-      type: (this.form.type as 'class' | 'event') || 'class',
-    };
-    const all = this.read();
-    all.push(newItem);
-    this.write(all);
-    this.showForm = false;
-    this.form = { type: 'class', title: '', date: '', start: '', end: '', location: '', notes: '' };
-    this.refresh();
-  }
-
-  remove(id: string) {
-    const all = this.read().filter((x) => x.id !== id);
-    this.write(all);
-    this.refresh();
+    /* Placeholder for future difficulty calculation */
   }
 }

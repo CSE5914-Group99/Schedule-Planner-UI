@@ -1,16 +1,98 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../environmnet';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class BackendService {
-  readonly base_url: string  = "http://g99project.ue.r.appspot.com"
+  readonly base_url = environment.apiBaseUrl;
+  //readonly base_url: string  = "http://g99project.ue.r.appspot.com"
   http: HttpClient = inject(HttpClient);
 
   testEndpoint(): Observable<any> {
-    return this.http.get<any>(this.base_url);
+    return this.http.get<any>(`${this.base_url}/health`);
+  }
+
+  /**
+   * Create a user on the backend. Expects the backend /users/ POST route to accept
+   * an object matching UserCreate on the backend. For OAuth signups we generate a
+   * random password client-side so the backend model's `password` field can be satisfied.
+   */
+  createUser(payload: {
+    username: string;
+    email: string;
+    password: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    date_of_birth?: string | null;
+    google_uid?: string | null;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/users/`, payload);
+  }
+
+  getUserById(id: string | number): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/users/${id}`);
+  }
+
+  /**
+   * Fetch a user by their Google UID. Backend should implement an endpoint like
+   * GET /users/google/{google_uid} that returns 200 + user when found or 404 when not.
+   */
+  getUserByGoogleUid(googleUid: string): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/users/google/${encodeURIComponent(googleUid)}`);
+  }
+
+  // --- Schedule endpoints -------------------------------------------------
+  getSchedules(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/schedule/${userId}`);
+  }
+
+  addSchedule(userId: number, payload: any): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/schedule/add/${userId}`, payload);
+  }
+
+  updateSchedule(userId: number, scheduleId: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}`, payload);
+  }
+
+  saveSchedule(userId: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.base_url}/schedule/save/${userId}`, payload);
+  }
+
+  deleteSchedule(userId: number, scheduleId: number): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/schedule/${userId}/${scheduleId}`);
+  }
+
+  setFavoriteSchedule(userId: number, scheduleId: number): Observable<any> {
+    return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/favorite`, {});
+  }
+
+  // --- Course endpoints ---------------------------------------------------
+  addCourseToSchedule(userId: number, scheduleId: number, course: any): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course`, course);
+  }
+
+  updateCourse(userId: number, scheduleId: number, courseId: string, course: any): Observable<any> {
+    return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`, course);
+  }
+
+  deleteCourse(userId: number, scheduleId: number, courseId: string): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`);
+  }
+
+  // --- Event endpoints ----------------------------------------------------
+  addEventToSchedule(userId: number, scheduleId: number, event: any): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/event`, event);
+  }
+
+  updateEvent(userId: number, scheduleId: number, eventId: string, event: any): Observable<any> {
+    return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/event/${eventId}`, event);
+  }
+
+  deleteEvent(userId: number, scheduleId: number, eventId: string): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/event/${eventId}`);
   }
 }
