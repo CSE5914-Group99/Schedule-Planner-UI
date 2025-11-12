@@ -1,69 +1,81 @@
-<h2 class="title">Schedule Planner</h2>
+<div class="landing">
+  <h2 class="title">Schedule Planner</h2>
 
-<!-- Upcoming at top -->
-<section class="card">
-  <h3>Upcoming (next 5)</h3>
-  <div *ngIf="!upcoming.length" class="muted">No upcoming items.</div>
-  <ul class="upcoming">
-    <li *ngFor="let u of upcoming">
-      <strong>[{{ u.type }}]</strong>
-      {{ u.title }} — {{ u.date }} {{ u.start }}–{{ u.end }}
-      <span *ngIf="u.location"> &#64; {{ u.location }}</span>
-    </li>
-  </ul>
-</section>
+  <!-- Upcoming at top -->
+  <section class="card">
+    <h3>Upcoming (next 5)</h3>
+    <div *ngIf="!upcoming.length" class="muted">No upcoming items.</div>
+    <ul class="upcoming">
+      <li *ngFor="let u of upcoming">
+        <strong>[{{ u.type }}]</strong>
+        {{ u.title }} — {{ u.date }} {{ u.start }}–{{ u.end }}
+        <span *ngIf="u.location"> &#64; {{ u.location }}</span>
+      </li>
+    </ul>
+  </section>
 
-<div class="layout">
-  <!-- Left Difficulty -->
-  <aside class="card side">
-    <h4>Estimated Difficulty</h4>
-    <p class="muted">
-      This schedule has an estimated difficulty of <strong>{{ items.length * 2 }}</strong> hours per
-      week
-    </p>
-    <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
+  <div class="layout">
+    <!-- Left Difficulty -->
+    <aside class="card side">
+      <h4>Estimated Difficulty</h4>
+      <p class="muted">
+        This schedule has an estimated difficulty of <strong>{{ items.length * 2 }}</strong> hours
+        per week
+      </p>
+      <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
 
-    <div class="divider"></div>
+      <div class="divider"></div>
 
-    <h4>Backend</h4>
-    <button class="btn" (click)="checkBackend()">Check backend health</button>
-    <div class="muted" *ngIf="healthLoading">Checking backend...</div>
-    <pre *ngIf="health" class="muted" style="white-space:pre-wrap; max-height:6rem; overflow:auto;">{{ health }}</pre>
+      <h4>Backend</h4>
+      <button class="btn" (click)="checkBackend()">Check backend health</button>
+      <div class="muted" *ngIf="healthLoading">Checking backend...</div>
+      <pre
+        *ngIf="health"
+        class="muted"
+        style="white-space: pre-wrap; max-height: 6rem; overflow: auto"
+        >{{ health }}</pre
+      >
 
-    <div class="divider"></div>
+      <div class="divider"></div>
 
-    <button class="btn" (click)="router.navigate(['/schedule/new'])">Open Schedule Builder</button>
-    <button class="btn" (click)="router.navigate(['/schedules'])">View saved schedules</button>
-  </aside>
+      <button class="btn" (click)="router.navigate(['/schedule/new'])">
+        Open Schedule Builder
+      </button>
+      <button class="btn" (click)="router.navigate(['/schedules'])">View saved schedules</button>
+    </aside>
 
-  <!-- calendar (read-only favorite schedule preview) -->
-  <section class="card flex1">
-    <h4 class="muted">Favorite schedule preview</h4>
-    
-    @if (favoriteSchedule()) {
-      <div class="favorite-info">
-        <strong>{{ favoriteSchedule()!.name }}</strong> ⭐
-      </div>
-    } @else {
-      <p class="muted no-favorite-banner">No favorite schedule selected. Visit "View saved schedules" to mark a schedule as favorite!</p>
-    }
-    
-    <div class="weekgrid">
-      <div class="head cell">Time</div>
-      <div class="head cell" *ngFor="let d of days">{{ d }}</div>
+    <!-- calendar (read-only favorite schedule preview) -->
+    <section class="card flex1">
+      <h4 class="muted">Favorite schedule preview</h4>
 
-      <ng-container *ngFor="let t of times">
-        <div class="time cell">{{ t }}</div>
-        <div class="slot cell" *ngFor="let d of days">
-          <div class="slot-items">
-            <div class="pill" *ngFor="let it of items | byDayTime: d : t">
-              {{ it.title }}
+      @if (favoriteSchedule()) {
+        <div class="favorite-info">
+          <strong>{{ favoriteSchedule()!.name }}</strong> ⭐
+        </div>
+      } @else {
+        <p class="muted no-favorite-banner">
+          No favorite schedule selected. Visit "View saved schedules" to mark a schedule as
+          favorite!
+        </p>
+      }
+
+      <div class="weekgrid">
+        <div class="head cell">Time</div>
+        <div class="head cell" *ngFor="let d of days">{{ d }}</div>
+
+        <ng-container *ngFor="let t of times">
+          <div class="time cell">{{ t }}</div>
+          <div class="slot cell" *ngFor="let d of days">
+            <div class="slot-items">
+              <div class="pill" *ngFor="let it of items | byDayTime: d : t">
+                {{ it.title }}
+              </div>
             </div>
           </div>
-        </div>
-      </ng-container>
-    </div>
-  </section>
-</div>
+        </ng-container>
+      </div>
+    </section>
+  </div>
 
-<!-- builder form removed on landing (read-only page) -->
+  <!-- builder form removed on landing (read-only page) -->
+</div>

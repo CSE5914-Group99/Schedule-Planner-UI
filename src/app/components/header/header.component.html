@@ -3,8 +3,15 @@
   <button class="button--borderless" (click)="homeClicked()">Home</button>
   <button class="button--borderless" (click)="savedSchedulesClicked()">Saved Schedules</button>
   @if (!signedIn) {
-    <button (click)="signInClicked()">Sign in</button>
+    <button (click)="signIn()">Sign in</button>
   } @else {
-    <button (click)="signOutClicked()">Log Out</button>
+    <div class="dropdown">
+      <button class="dropbtn">My Profile<span class="caret">▼</span></button>
+      <div class="dropdown-content">
+        <button (click)="viewProfile()">View Profile</button>
+        <button (click)="signOut()">Log Out</button>
+        <button (click)="deleteAccount()">Delete my Account</button>
+      </div>
+    </div>
   }
 </span>

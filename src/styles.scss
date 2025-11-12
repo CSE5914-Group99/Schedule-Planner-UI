@@ -1,3 +1,6 @@
+$header-height: 96px;
+$footer-height: 145px;
+
 button {
   font-family: 'Inter', Arial, sans-serif;
   margin-left: 15px;
@@ -15,4 +18,17 @@ button {
 .button--borderless {
   background-color: transparent;
   color: black;
+}
+
+mat-dialog-container {
+  border: 2px solid black;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  overflow: hidden;
+}
+
+.backdrop {
+  background-color: rgba(0, 0, 0, 0.7);
 }

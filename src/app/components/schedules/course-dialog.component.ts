@@ -8,7 +8,7 @@ import { Course, DayOfWeek } from '../../models/schedule.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './course-dialog.component.html',
-  styleUrls: ['./course-dialog.component.scss']
+  styleUrls: ['./course-dialog.component.scss'],
 })
 export class CourseDialogComponent implements OnInit {
   course = input<Course | null>(null);
@@ -24,7 +24,15 @@ export class CourseDialogComponent implements OnInit {
   endTime = signal('09:00');
   selectedDays = signal<Set<DayOfWeek>>(new Set());
 
-  allDays: DayOfWeek[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  allDays: DayOfWeek[] = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   isEdit = signal(false);
   currentCourseId = signal<string | undefined>(undefined);
@@ -75,7 +83,7 @@ export class CourseDialogComponent implements OnInit {
       instructor: this.instructor().trim() || undefined,
       startTime: this.startTime(),
       endTime: this.endTime(),
-      repeatDays: Array.from(this.selectedDays())
+      repeatDays: Array.from(this.selectedDays()),
     };
 
     this.save.emit(course);

@@ -1,15 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../environmnet';
-
+import { environment } from '../environment';
+import { User } from '../models/user.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BackendService {
   readonly base_url = environment.apiBaseUrl;
-  //readonly base_url: string  = "http://g99project.ue.r.appspot.com"
   http: HttpClient = inject(HttpClient);
 
   testEndpoint(): Observable<any> {
@@ -21,20 +20,16 @@ export class BackendService {
    * an object matching UserCreate on the backend. For OAuth signups we generate a
    * random password client-side so the backend model's `password` field can be satisfied.
    */
-  createUser(payload: {
-    username: string;
-    email: string;
-    password: string;
-    first_name?: string | null;
-    last_name?: string | null;
-    date_of_birth?: string | null;
-    google_uid?: string | null;
-  }): Observable<any> {
+  createUser(payload: User): Observable<any> {
     return this.http.post<any>(`${this.base_url}/users/`, payload);
   }
 
-  getUserById(id: string | number): Observable<any> {
+  getUserById(id: string): Observable<User> {
     return this.http.get<any>(`${this.base_url}/users/${id}`);
+  }
+
+  deleteUserById(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base_url}/users/${id}`);
   }
 
   /**
@@ -76,11 +71,16 @@ export class BackendService {
   }
 
   updateCourse(userId: number, scheduleId: number, courseId: string, course: any): Observable<any> {
-    return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`, course);
+    return this.http.put<any>(
+      `${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`,
+      course,
+    );
   }
 
   deleteCourse(userId: number, scheduleId: number, courseId: string): Observable<any> {
-    return this.http.delete<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`);
+    return this.http.delete<any>(
+      `${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`,
+    );
   }
 
   // --- Event endpoints ----------------------------------------------------
@@ -89,10 +89,15 @@ export class BackendService {
   }
 
   updateEvent(userId: number, scheduleId: number, eventId: string, event: any): Observable<any> {
-    return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/event/${eventId}`, event);
+    return this.http.put<any>(
+      `${this.base_url}/schedule/${userId}/${scheduleId}/event/${eventId}`,
+      event,
+    );
   }
 
   deleteEvent(userId: number, scheduleId: number, eventId: string): Observable<any> {
-    return this.http.delete<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/event/${eventId}`);
+    return this.http.delete<any>(
+      `${this.base_url}/schedule/${userId}/${scheduleId}/event/${eventId}`,
+    );
   }
 }

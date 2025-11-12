@@ -10,7 +10,7 @@ import { Schedule } from '../../models/schedule.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './schedule-list.component.html',
-  styleUrls: ['./schedule-list.component.scss']
+  styleUrls: ['./schedule-list.component.scss'],
 })
 export class ScheduleListComponent implements OnInit {
   private scheduleService = inject(ScheduleService);
@@ -36,7 +36,7 @@ export class ScheduleListComponent implements OnInit {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.scheduleService.refreshSchedules();
-    
+
     // Small delay to show loading state
     setTimeout(() => {
       this.loading.set(false);
@@ -51,7 +51,7 @@ export class ScheduleListComponent implements OnInit {
     event.stopPropagation();
     event.preventDefault();
     console.log('Edit clicked for schedule:', schedule);
-    
+
     if (schedule.id) {
       this.router.navigate(['/schedule/edit', schedule.id]);
     }
@@ -69,7 +69,7 @@ export class ScheduleListComponent implements OnInit {
     event.stopPropagation();
     event.preventDefault();
     console.log('Delete clicked for schedule:', schedule);
-    
+
     if (!schedule.id) return;
 
     const confirmDelete = confirm(`Are you sure you want to delete "${schedule.name}"?`);
@@ -84,14 +84,14 @@ export class ScheduleListComponent implements OnInit {
         this.errorMessage.set('Failed to delete schedule');
         this.loading.set(false);
         console.error('Delete error:', err);
-      }
+      },
     });
   }
 
   toggleFavorite(schedule: Schedule, event: MouseEvent) {
     event.stopPropagation();
     event.preventDefault();
-    
+
     if (!schedule.id) {
       console.error('No schedule ID found');
       return;
@@ -101,13 +101,13 @@ export class ScheduleListComponent implements OnInit {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.successMessage.set(null);
-    
+
     this.scheduleService.setFavorite(schedule.id).subscribe({
       next: (response) => {
         console.log('Favorite set successfully:', response);
         this.loading.set(false);
         this.successMessage.set(`"${schedule.name}" is now your favorite schedule!`);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => {
           this.successMessage.set(null);
@@ -117,12 +117,12 @@ export class ScheduleListComponent implements OnInit {
         console.error('Favorite error details:', err);
         this.errorMessage.set('Failed to set favorite. Please try again.');
         this.loading.set(false);
-        
+
         // Clear error message after 5 seconds
         setTimeout(() => {
           this.errorMessage.set(null);
         }, 5000);
-      }
+      },
     });
   }
 
@@ -130,19 +130,19 @@ export class ScheduleListComponent implements OnInit {
     const courseCount = schedule.courses.length;
     const eventCount = schedule.events.length;
     const parts: string[] = [];
-    
+
     if (courseCount > 0) {
       parts.push(`${courseCount} course${courseCount !== 1 ? 's' : ''}`);
     }
     if (eventCount > 0) {
       parts.push(`${eventCount} event${eventCount !== 1 ? 's' : ''}`);
     }
-    
+
     return parts.length > 0 ? parts.join(', ') : 'Empty schedule';
   }
 
   hasUnsavedSchedules(): boolean {
-    return this.schedules().some(s => !s.id);
+    return this.schedules().some((s) => !s.id);
   }
 
   goBack() {

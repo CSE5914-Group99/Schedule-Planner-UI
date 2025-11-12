@@ -1,9 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { ScheduleItem } from '../models/schedule-item';
+import { ScheduleItem } from '../models/schedule-item.model';
 
 @Pipe({
   name: 'byDayTime',
-  standalone: true
+  standalone: true,
 })
 export class ByDayTimePipe implements PipeTransform {
   transform(items: ScheduleItem[], day: string, time: string): ScheduleItem[] {
@@ -11,10 +11,10 @@ export class ByDayTimePipe implements PipeTransform {
       return [];
     }
 
-    return items.filter(item => {
+    return items.filter((item) => {
       // Check if the item occurs on this day
       const occursOnDay = item.repeats && item.repeatDays?.includes(day);
-      
+
       if (!occursOnDay) {
         return false;
       }
@@ -26,7 +26,7 @@ export class ByDayTimePipe implements PipeTransform {
       // Parse item start and end times
       const [startHour, startMinute] = (item.start || '00:00').split(':').map(Number);
       const [endHour, endMinute] = (item.end || '00:00').split(':').map(Number);
-      
+
       const itemStart = startHour * 60 + startMinute;
       const itemEnd = endHour * 60 + endMinute;
 
