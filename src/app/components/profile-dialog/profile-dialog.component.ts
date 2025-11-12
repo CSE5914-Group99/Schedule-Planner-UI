@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { Auth } from '@angular/fire/auth';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { User } from '../../models/user.model';
+import { BackendService } from '../../services/backend.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-profile-dialog',
@@ -20,6 +22,8 @@ export class ProfileDialogComponent implements OnInit {
   private data = inject<{ user: User }>(MAT_DIALOG_DATA);
   private fb = inject(FormBuilder);
   private auth: Auth = inject(Auth);
+  private backend = inject(BackendService);
+  private authService = inject(AuthService);
   private sanitizer: DomSanitizer = inject(DomSanitizer);
 
   form!: FormGroup;
@@ -28,18 +32,63 @@ export class ProfileDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.image = this.sanitizer.bypassSecurityTrustUrl(this.url);
-    console.log('image: ', this.image);
+    const u = this.data?.user || ({} as any);
     this.form = this.fb.group({
-      firstName: [this.data.user.first_name, Validators.required],
-      lastName: [this.data.user.last_name, Validators.required],
-      email: [this.data.user.email, [Validators.required, Validators.email]],
-      preferences: [this.data.user.preferences],
+      firstName: [u.first_name || '', Validators.required],
+      lastName: [u.last_name || '', Validators.required],
+      username: [u.username || '', Validators.required],
+      email: [u.email || '', [Validators.email]],
+      // Show preferences as JSON in the textarea for readability
+      preferences: [u?.preferences ? JSON.stringify(u.preferences, null, 2) : ''],
     });
   }
 
   save(): void {
     if (this.form.valid) {
-      this.dialogRef.close(this.form.value);
+      const v = this.form.value;
+      const appUser = this.authService.currentUser();
+      if (!appUser?.id) { this.dialogRef.close(); return; }
+
+      const payload: any = {
+        first_name: (v.firstName ?? '').toString().trim(),
+        last_name: (v.lastName ?? '').toString().trim(),
+        username: (v.username ?? '').toString().trim(),
+      };
+
+      // Only include email if provided (avoid sending empty string which causes 422)
+      const emailVal = (v.email ?? '').toString().trim();
+      if (emailVal) payload.email = emailVal;
+
+      // Preferences comes from a textarea; try to parse JSON if non-empty
+      const prefText = (v.preferences ?? '').toString().trim();
+      if (prefText) {
+        try {
+          payload.preferences = JSON.parse(prefText);
+        } catch (e) {
+          console.warn('Invalid JSON in preferences, not sending field');
+        }
+      }
+
+      this.backend.updateUser(appUser.id, payload).subscribe({
+        next: (updated: any) => {
+          try {
+            this.authService.setUser({
+              id: updated.id,
+              email: updated.email,
+              username: updated.username,
+              google_uid: updated.google_uid,
+              first_name: updated.first_name,
+              last_name: updated.last_name,
+              date_of_birth: updated.date_of_birth,
+            });
+          } catch {}
+          this.dialogRef.close(updated);
+        },
+        error: (err) => {
+          console.warn('Failed to update user profile', err);
+          this.dialogRef.close();
+        },
+      });
     }
   }
 

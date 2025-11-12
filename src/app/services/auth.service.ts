@@ -2,9 +2,12 @@ import { Injectable, signal } from '@angular/core';
 
 export interface CurrentUser {
   id: number;
-  email?: string;
-  username?: string;
-  google_uid?: string;
+  email?: string | null;
+  username?: string | null;
+  google_uid?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  date_of_birth?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
