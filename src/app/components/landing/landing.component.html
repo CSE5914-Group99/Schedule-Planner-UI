@@ -1,4 +1,4 @@
-<div class="landing">
+<div class="landing" *ngIf="signedIn">
   <h2 class="title">Schedule Planner</h2>
 
   <!-- Upcoming at top -->
@@ -9,7 +9,7 @@
       <li *ngFor="let u of upcoming">
         <strong>[{{ u.type }}]</strong>
         {{ u.title }} — {{ u.date }} {{ u.start }}–{{ u.end }}
-        <span *ngIf="u.location"> &#64; {{ u.location }}</span>
+        <span *ngIf="u.location"> @ {{ u.location }}</span>
       </li>
     </ul>
   </section>
@@ -48,16 +48,17 @@
     <section class="card flex1">
       <h4 class="muted">Favorite schedule preview</h4>
 
-      @if (favoriteSchedule()) {
+      <ng-container *ngIf="favoriteSchedule(); else noFav">
         <div class="favorite-info">
           <strong>{{ favoriteSchedule()!.name }}</strong> ⭐
         </div>
-      } @else {
+      </ng-container>
+      <ng-template #noFav>
         <p class="muted no-favorite-banner">
           No favorite schedule selected. Visit "View saved schedules" to mark a schedule as
           favorite!
         </p>
-      }
+      </ng-template>
 
       <div class="weekgrid">
         <div class="head cell">Time</div>

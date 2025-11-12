@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BackendService } from '../../services/backend.service';
 import { AuthService } from '../../services/auth.service';
+import { Auth, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
 import { ScheduleService } from '../../services/schedule.service';
 import { ByDayTimePipe } from '../../pipes/by-day-time.pipe';
 import { ScheduleItem } from '../../models/schedule-item.model';
@@ -42,6 +43,7 @@ export class LandingComponent implements OnInit {
   private auth = inject(AuthService);
   private scheduleService = inject(ScheduleService);
   public router = inject(Router);
+  private firebaseAuth = inject(Auth);
 
   // Use computed signal from service
   favoriteSchedule = this.scheduleService.favoriteSchedule;
@@ -59,10 +61,25 @@ export class LandingComponent implements OnInit {
         this.upcoming = [];
       }
     });
+
+    // When login state changes to a real app user, refresh schedules
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (user?.id) {
+        console.log('Auth user detected on landing, refreshing schedules for user', user.id);
+        this.scheduleService.refreshSchedules();
+      }
+    });
   }
 
   ngOnInit() {
     console.log('Landing component initialized');
+    // If user is not signed into the app, redirect to welcome page
+    const u = this.auth.currentUser();
+    if (!u?.id) {
+      this.router.navigate(['/']);
+      return;
+    }
     // Load schedules from backend
     this.scheduleService.refreshSchedules();
   }
@@ -142,5 +159,50 @@ export class LandingComponent implements OnInit {
 
   recalc() {
     /* Placeholder for future difficulty calculation */
+  }
+
+  // convenience for template
+  get signedIn(): boolean { return !!this.auth.currentUser(); }
+
+  goToBuilder() { this.router.navigate(['/schedule/new']); }
+  goToSchedules() { this.router.navigate(['/schedules']); }
+
+  // Explicit sign-in flow for existing accounts
+  async signInExisting() {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(this.firebaseAuth, provider);
+      const fbUser = result.user;
+      // Check backend; if exists, sign into app; otherwise route to signup
+      this.backend.getUserByGoogleUid(fbUser.uid).subscribe({
+        next: (user: any) => {
+          try { this.auth.setUser({ id: user.id, email: user.email, username: user.username, google_uid: user.google_uid, first_name: user.first_name, last_name: user.last_name, date_of_birth: user.date_of_birth }); } catch {}
+          this.router.navigate(['/landing']);
+        },
+        error: () => {
+          const pending = { uid: fbUser.uid, email: fbUser.email, displayName: fbUser.displayName };
+          try { localStorage.setItem('pendingFirebaseUser', JSON.stringify(pending)); } catch {}
+          this.router.navigate(['/signup']);
+        }
+      });
+    } catch (e) {
+      console.error('Sign-in failed', e);
+    }
+  }
+
+  // Start signup: force account chooser then take user to /signup to fill details
+  async startSignup() {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(this.firebaseAuth, provider);
+      const fbUser = result.user;
+      const pending = { uid: fbUser.uid, email: fbUser.email, displayName: fbUser.displayName };
+      try { localStorage.setItem('pendingFirebaseUser', JSON.stringify(pending)); } catch {}
+      this.router.navigate(['/signup']);
+    } catch (e) {
+      console.error('Signup start failed', e);
+    }
   }
 }

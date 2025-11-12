@@ -28,6 +28,10 @@ export class BackendService {
     return this.http.get<any>(`${this.base_url}/users/${id}`);
   }
 
+  updateUser(id: number, payload: Partial<User>): Observable<User> {
+    return this.http.put<any>(`${this.base_url}/users/${id}`, payload);
+  }
+
   deleteUserById(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base_url}/users/${id}`);
   }
