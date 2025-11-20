@@ -1,0 +1,58 @@
+<section class="card flex1">
+  <h4 class="title">
+    {{ schedule.name }}
+    @if (schedule.favorite) {
+      <span>⭐</span>
+    }
+  </h4>
+
+  <!-- create a grid for the weekly schedule -->
+  <div class="weekgrid">
+    <div class="head cell" style="grid-column: 1; grid-row: 1">Time</div>
+    @for (d of days; let j = $index; track d) {
+      <div class="head cell" [style.gridColumn]="j + 2" style="grid-row: 1">
+        {{ d }}
+      </div>
+    }
+
+    @for (time of times; let i = $index; track time) {
+      <div class="time cell" [style.gridColumn]="1" [style.gridRow]="i + 2">
+        {{ time }}
+      </div>
+
+      @for (d of days; let j = $index; track d) {
+        <div class="slot cell" [style.gridColumn]="j + 2" [style.gridRow]="i + 2"></div>
+      }
+    }
+
+    <!-- Create course objects on the grid -->
+    @for (course of schedule.courses; track course.courseId) {
+      @for (day of course.repeatDays; track day) {
+        <div
+          class="pill course-pill"
+          [style.gridColumn]="getDayIndex(day) + 2"
+          [style.gridRowStart]="getRowStart(course.startTime)"
+          [style.gridRowEnd]="getRowEnd(course.endTime)"
+          title="{{ course.courseId }} • {{ course.instructor }}"
+        >
+          {{ course.title }}
+        </div>
+      }
+    }
+
+    <!-- Create event objects on the grid -->
+    @for (event of schedule.events; track event.id) {
+      @for (day of event.repeatDays; track day) {
+        <div
+          class="pill event-pill"
+          [style.gridColumn]="getDayIndex(day) + 2"
+          [style.gridRowStart]="getRowStart(event.startTime)"
+          [style.gridRowEnd]="getRowEnd(event.endTime)"
+          title="{{ event.description }}"
+        >
+          {{ event.title }}
+        </div>
+      }
+    }
+  </div>
+</section>
