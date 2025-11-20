@@ -63,10 +63,7 @@ export class ScheduleService {
     if (!current) return;
 
     course.id = this.generateId();
-    // Assign color if not provided
-    if (!course.color) {
-      course.color = this.generateColor('course', current.courses.length);
-    }
+
     current.courses.push(course);
     this.currentSchedule.set({ ...current });
     this.hasUnsavedChanges.set(true);
@@ -101,10 +98,6 @@ export class ScheduleService {
     if (!current) return;
 
     event.id = this.generateId();
-    // Assign color if not provided
-    if (!event.color) {
-      event.color = this.generateColor('event', current.events.length);
-    }
     current.events.push(event);
     this.currentSchedule.set({ ...current });
     this.hasUnsavedChanges.set(true);
@@ -160,7 +153,7 @@ export class ScheduleService {
         ...payload,
         scheduleId: schedule.id,
       };
-      return this.backend.saveSchedule(user.id, updatePayload).pipe(
+      return this.backend.saveSchedule(user.google_uid, schedule).pipe(
         tap((response) => {
           console.log('Schedule updated:', response);
           this.hasUnsavedChanges.set(false);
@@ -169,11 +162,11 @@ export class ScheduleService {
       );
     } else {
       // Create new schedule
-      return this.backend.addSchedule(user.id, payload).pipe(
+      return this.backend.addSchedule(user.google_uid, schedule).pipe(
         tap((response) => {
           console.log('Schedule created:', response);
-          if (response.id || response.scheduleId) {
-            schedule.id = response.id || response.scheduleId;
+          if (response.id) {
+            schedule.id = response.id;
             this.currentSchedule.set({ ...schedule });
           }
           this.hasUnsavedChanges.set(false);
@@ -190,7 +183,7 @@ export class ScheduleService {
       throw new Error('No user logged in');
     }
 
-    return this.backend.deleteSchedule(user.id, scheduleId).pipe(
+    return this.backend.deleteSchedule(user.google_uid, scheduleId).pipe(
       tap(() => {
         this.schedules.set(this.schedules().filter((s) => s.id !== scheduleId));
 
@@ -211,7 +204,7 @@ export class ScheduleService {
       throw new Error('No user logged in');
     }
 
-    console.log('Setting favorite for schedule ID:', scheduleId, 'User ID:', user.id);
+    console.log('Setting favorite for schedule ID:', scheduleId, 'User ID:', user.google_uid);
     console.log('Current schedules:', this.schedules());
 
     // First, get the schedule to update
@@ -237,7 +230,7 @@ export class ScheduleService {
     console.log('Sending payload to backend:', updatePayload);
 
     // Update the schedule with favorite flag using saveSchedule endpoint
-    return this.backend.saveSchedule(user.id, updatePayload).pipe(
+    return this.backend.saveSchedule(user.google_uid, schedule).pipe(
       tap((response) => {
         console.log('Backend response:', response);
         // Update local state: unfavorite all others and favorite this one
@@ -259,9 +252,9 @@ export class ScheduleService {
       return;
     }
 
-    console.log('Refreshing schedules for user:', user.id);
+    console.log('Refreshing schedules for user:', user.google_uid);
 
-    this.backend.getSchedules(user.id).subscribe({
+    this.backend.getSchedules(user.google_uid).subscribe({
       next: (data: any[]) => {
         console.log('Received schedules from backend:', data);
         const schedules = data.map((item) => this.backendToSchedule(item));
@@ -298,7 +291,11 @@ export class ScheduleService {
   }
 
   // Helper: Format repeatDays and times for backend
-  private formatTimesDays(days: DayOfWeek[], startTime: string, endTime: string): string {
+  private formatTimesDays(
+    days: DayOfWeek[] | undefined = [],
+    startTime: string | undefined = '08:00',
+    endTime: string | undefined = '09:00',
+  ): string {
     if (!days.length) return `${startTime}-${endTime}`;
     return `${days.join(', ')} ${startTime}-${endTime}`;
   }

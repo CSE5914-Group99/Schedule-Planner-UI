@@ -6,7 +6,7 @@ import { UserDialogComponent } from '../components/user-dialog/user-dialog.compo
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private currentUser: User = { id: 0 };
+  private currentUser: User = { google_uid: '' };
   private readonly backendService = inject(BackendService);
   private readonly dialog = inject(MatDialog);
 

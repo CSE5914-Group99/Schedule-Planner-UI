@@ -31,8 +31,8 @@
         <div
           class="pill course-pill"
           [style.gridColumn]="getDayIndex(day) + 2"
-          [style.gridRowStart]="getRowStart(course.startTime)"
-          [style.gridRowEnd]="getRowEnd(course.endTime)"
+          [style.gridRowStart]="getRowStart(course.startTime || '08:00')"
+          [style.gridRowEnd]="getRowEnd(course.endTime || '08:00')"
           title="{{ course.courseId }} • {{ course.instructor }}"
         >
           {{ course.title }}

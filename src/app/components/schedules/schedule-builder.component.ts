@@ -65,10 +65,9 @@ export class ScheduleBuilderComponent implements OnInit {
         type: 'course',
         courseId: course.courseId,
         instructor: course.instructor,
-        startTime: course.startTime,
-        endTime: course.endTime,
-        repeatDays: course.repeatDays,
-        color: course.color,
+        startTime: course.startTime || '',
+        endTime: course.endTime || '',
+        repeatDays: course.repeatDays || [],
       });
     });
 
@@ -82,7 +81,6 @@ export class ScheduleBuilderComponent implements OnInit {
         startTime: event.startTime,
         endTime: event.endTime,
         repeatDays: event.repeatDays,
-        color: event.color,
       });
     });
 

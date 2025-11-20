@@ -48,7 +48,7 @@ export class LandingComponent implements OnInit {
 
   constructor() {
     this.user = this.auth.getUser();
-    this.backend.getFavoriteSchedule(this.user.id).subscribe({
+    this.backend.getFavoriteSchedule(this.user.google_uid).subscribe({
       next: (s: Schedule) => {
         console.log('Favorite schedule loaded:', s);
         this.schedule = s;

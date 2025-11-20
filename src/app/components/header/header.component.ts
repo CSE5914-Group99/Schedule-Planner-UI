@@ -41,7 +41,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   platformId: object = inject(PLATFORM_ID);
 
   signedIn: boolean = false;
-  currentUser: User = { id: 0 };
+  currentUser: User = { google_uid: '' };
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -88,10 +88,8 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   saveUserToService(user: any) {
     this.signedIn = !!user;
     this.currentUser = {
-      id: 0,
       google_uid: user?.uid,
       email: user?.email,
-      username: user?.displayName,
     };
     this.authService.setUser(this.currentUser);
 
@@ -106,16 +104,16 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   signOut() {
     console.log('Sign out button clicked');
-    this.authService.setUser({ id: 0 });
+    this.authService.setUser({ google_uid: '' });
     this.signedIn = false;
-    this.currentUser = { id: 0 };
+    this.currentUser = { google_uid: '' };
     this.auth.signOut().then(() => {
       this.router.navigate(['/landing']);
     });
   }
 
   viewProfile() {
-    if (!this.signedIn || !this.currentUser.id) {
+    if (!this.signedIn || !this.currentUser.google_uid) {
       console.warn('User not ready yet');
       return;
     }
@@ -128,7 +126,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this.backendService.updateUser(this.currentUser.id, result).subscribe({
+          this.backendService.updateUser(this.currentUser.google_uid || '', result).subscribe({
             next: (updatedUser: User) => {
               this.currentUser = updatedUser;
               this.authService.setUser(this.currentUser);
@@ -141,11 +139,11 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   deleteAccount() {
     let user: User = this.authService.getUser();
-    this.backendService.deleteUserById(user.id?.toString() || '').subscribe({
+    this.backendService.deleteUserById(user.google_uid || '').subscribe({
       next: () => {
-        this.authService.setUser({ id: 0 });
+        this.authService.setUser({ google_uid: '' });
         this.signedIn = false;
-        this.currentUser = { id: 0 };
+        this.currentUser = { google_uid: '' };
         this.auth.signOut().then(() => {
           this.router.navigate(['/landing']);
         });

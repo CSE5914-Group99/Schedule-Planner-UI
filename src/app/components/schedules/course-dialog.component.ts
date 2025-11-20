@@ -42,12 +42,12 @@ export class CourseDialogComponent implements OnInit {
     if (courseData) {
       this.isEdit.set(true);
       this.currentCourseId.set(courseData.id);
-      this.title.set(courseData.title);
+      this.title.set(courseData.title || '');
       this.courseId.set(courseData.courseId);
       this.instructor.set(courseData.instructor || '');
-      this.startTime.set(courseData.startTime);
-      this.endTime.set(courseData.endTime);
-      this.selectedDays.set(new Set(courseData.repeatDays));
+      this.startTime.set(courseData.startTime || '08:00');
+      this.endTime.set(courseData.endTime || '09:00');
+      this.selectedDays.set(new Set(courseData.repeatDays || []));
     }
   }
 

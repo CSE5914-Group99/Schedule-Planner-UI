@@ -59,9 +59,7 @@ export class LoginComponent {
           // user exists -> set authService and continue
           try {
             this.authService.setUser({
-              id: user.id,
               email: user.email,
-              username: user.username,
               google_uid: user.google_uid,
             });
           } catch {}
@@ -78,9 +76,7 @@ export class LoginComponent {
                 try {
                   const u = created || {};
                   this.authService.setUser({
-                    id: u.id,
                     email: u.email,
-                    username: u.username,
                     google_uid: u.google_uid,
                   });
                 } catch {}
@@ -96,9 +92,7 @@ export class LoginComponent {
                     next: (user2: any) => {
                       try {
                         this.authService.setUser({
-                          id: user2.id,
                           email: user2.email,
-                          username: user2.username,
                           google_uid: user2.google_uid,
                         });
                       } catch {}
@@ -129,9 +123,7 @@ export class LoginComponent {
             next: (created: any) => {
               try {
                 this.authService.setUser({
-                  id: created.id,
                   email: created.email,
-                  username: created.username,
                   google_uid: created.google_uid,
                 });
               } catch {}
