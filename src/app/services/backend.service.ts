@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../environment';
 import { User } from '../models/user.model';
+import { ModificationRequests, Schedule, ScheduleAlterations } from '../models/schedule.model';
 
 @Injectable({
   providedIn: 'root',
@@ -81,6 +82,16 @@ export class BackendService {
     return this.http.delete<any>(
       `${this.base_url}/schedule/${userId}/${scheduleId}/course/${courseId}`,
     );
+  }
+
+  getClassRecommendations(
+    schedule: Schedule,
+    modification_requests: ModificationRequests,
+  ): Observable<ScheduleAlterations> {
+    return this.http.post<ScheduleAlterations>(`${this.base_url}/courses/class-recommendations`, {
+      schedule,
+      modification_requests,
+    });
   }
 
   // --- Event endpoints ----------------------------------------------------
