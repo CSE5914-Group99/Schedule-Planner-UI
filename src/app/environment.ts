@@ -9,5 +9,5 @@ export const environment = {
     appId: '1:903307041169:web:52ee211481272aaee62230',
   },
   // apiBaseUrl: 'http://127.0.0.1:8000'  // LOCAL BACKEND
-  apiBaseUrl: 'https://g99project-477702.uc.r.appspot.com/', // PROD BACKEND
+  apiBaseUrl: 'https://g99project-477702.uc.r.appspot.com', // PROD BACKEND
 };

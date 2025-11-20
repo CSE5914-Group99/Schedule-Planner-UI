@@ -1,52 +1,64 @@
-import { Component, inject, OnInit, effect } from '@angular/core';
+import { Component, inject, OnInit, effect, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BackendService } from '../../services/backend.service';
 import { AuthService } from '../../services/auth.service';
 import { ScheduleService } from '../../services/schedule.service';
-import { ByDayTimePipe } from '../../pipes/by-day-time.pipe';
 import { ScheduleItem } from '../../models/schedule-item.model';
+import { WeeklyScheduleComponent } from '../weekly-schedule/weekly-schedule.component';
+import { Schedule } from '../../models/schedule.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [FormsModule, CommonModule, ByDayTimePipe],
+  imports: [FormsModule, CommonModule, WeeklyScheduleComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
 })
 export class LandingComponent implements OnInit {
-  days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  times = [
-    '08:00',
-    '09:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '13:00',
-    '14:00',
-    '15:00',
-    '16:00',
-    '17:00',
-  ];
+  schedule: Schedule = {
+    id: 0,
+    name: 'New Schedule',
+    favorite: false,
+    courses: [],
+    events: [],
+    difficultyScore: 0,
+    createdAt: '',
+    updatedAt: '',
+  };
 
-  items: ScheduleItem[] = [];
   upcoming: ScheduleItem[] = [];
 
   // Backend health state
   health: string | null = null;
   healthLoading = false;
+  user: User;
 
   // inject services
   private backend = inject(BackendService);
   private auth = inject(AuthService);
   private scheduleService = inject(ScheduleService);
   public router = inject(Router);
+  private cdRef = inject(ChangeDetectorRef);
 
   // Use computed signal from service
   favoriteSchedule = this.scheduleService.favoriteSchedule;
 
   constructor() {
+    this.user = this.auth.getUser();
+    this.backend.getFavoriteSchedule(this.user.id).subscribe({
+      next: (s: Schedule) => {
+        console.log('Favorite schedule loaded:', s);
+        this.schedule = s;
+        console.log(this.schedule);
+      },
+      error: (err) => {
+        console.error('Error loading favorite schedule:', err);
+      },
+    });
+    this.cdRef.markForCheck();
     // Use effect to react to favorite schedule changes
     effect(() => {
       const favorite = this.favoriteSchedule();
@@ -55,7 +67,6 @@ export class LandingComponent implements OnInit {
         this.mapScheduleToItems(favorite);
       } else {
         console.log('No favorite schedule found');
-        this.items = [];
         this.upcoming = [];
       }
     });
@@ -109,18 +120,11 @@ export class LandingComponent implements OnInit {
     });
 
     console.log('Mapped items:', mapped);
-    this.items = mapped;
     this.calculateUpcoming();
   }
 
   calculateUpcoming() {
     const nowKey = new Date().toISOString().slice(0, 16);
-    this.upcoming = this.items
-      .filter((x) => (x.date || '') + 'T' + (x.start || '') >= nowKey)
-      .sort((a, b) =>
-        ((a.date || '') + (a.start || '')).localeCompare((b.date || '') + (b.start || '')),
-      )
-      .slice(0, 5);
   }
 
   // call backend health endpoint and show result

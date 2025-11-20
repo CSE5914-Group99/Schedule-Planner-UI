@@ -82,13 +82,13 @@ export interface ModificationRequests {
 
 export interface ScheduleAlterations {
   alterations: Alteration[];
-  overallSummary: String; // "This alteration reduces your estimated difficulty by 2 points and saves you 2.5 hours per week."
+  overallSummary: string; // "This alteration reduces your estimated difficulty by 2 points and saves you 2.5 hours per week."
   confidence: number; // 0.9
 }
 
 export interface Alteration {
-  alterationName: String; // "Easiest Option"
-  description: String; // "Replaces CSE2331 with CSE2200"
+  alterationName: string; // "Easiest Option"
+  description: string; // "Replaces CSE2331 with CSE2200"
   classesToRemove: string[]; // ["CSE2331"]
   classesToAdd: Course[]; // ["CSE2200"]
   estimatedDifficultyChange: number; // -2

@@ -27,7 +27,7 @@ export class ScheduleListComponent implements OnInit {
   }
 
   loadSchedules() {
-    const user = this.authService.currentUser();
+    const user = this.authService.getUser();
     if (!user) {
       this.router.navigate(['/login']);
       return;

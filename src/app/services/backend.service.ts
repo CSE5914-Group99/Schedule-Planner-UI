@@ -29,6 +29,10 @@ export class BackendService {
     return this.http.get<any>(`${this.base_url}/users/${id}`);
   }
 
+  updateUser(id: number, payload: User): Observable<User> {
+    return this.http.put<User>(`${this.base_url}/users/${id}`, payload);
+  }
+
   deleteUserById(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base_url}/users/${id}`);
   }
@@ -42,8 +46,8 @@ export class BackendService {
   }
 
   // --- Schedule endpoints -------------------------------------------------
-  getSchedules(userId: number): Observable<any> {
-    return this.http.get<any>(`${this.base_url}/schedule/${userId}`);
+  getSchedules(userId: number): Observable<Schedule[]> {
+    return this.http.get<Schedule[]>(`${this.base_url}/schedule/${userId}`);
   }
 
   addSchedule(userId: number, payload: any): Observable<any> {
@@ -64,6 +68,10 @@ export class BackendService {
 
   setFavoriteSchedule(userId: number, scheduleId: number): Observable<any> {
     return this.http.put<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/favorite`, {});
+  }
+
+  getFavoriteSchedule(userId: number): Observable<Schedule> {
+    return this.http.get<Schedule>(`${this.base_url}/schedule/favorite/${userId}`);
   }
 
   // --- Course endpoints ---------------------------------------------------
