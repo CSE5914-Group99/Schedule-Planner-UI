@@ -1,6 +1,13 @@
 .landing {
   padding-top: var(--header-height);
   padding-bottom: var(--footer-height);
+  overflow-y: auto;
+}
+
+.landing::after {
+  content: '';
+  display: block;
+  height: 100px;
 }
 
 .title {

@@ -15,7 +15,7 @@ import { Observable, map, tap } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class ScheduleService {
   private backend = inject(BackendService);
-  private auth = inject(AuthService);
+  private authService = inject(AuthService);
 
   // Current schedule being edited
   currentSchedule = signal<Schedule | null>(null);
@@ -145,7 +145,7 @@ export class ScheduleService {
 
   // Save current schedule to backend
   saveCurrentSchedule(): Observable<any> {
-    const user = this.auth.currentUser();
+    const user = this.authService.getUser();
     const schedule = this.currentSchedule();
 
     if (!user || !schedule) {
@@ -185,7 +185,7 @@ export class ScheduleService {
 
   // Delete schedule
   deleteSchedule(scheduleId: number): Observable<any> {
-    const user = this.auth.currentUser();
+    const user = this.authService.getUser();
     if (!user) {
       throw new Error('No user logged in');
     }
@@ -205,7 +205,7 @@ export class ScheduleService {
 
   // Set schedule as favorite
   setFavorite(scheduleId: number): Observable<any> {
-    const user = this.auth.currentUser();
+    const user = this.authService.getUser();
     if (!user) {
       console.error('No user logged in');
       throw new Error('No user logged in');
@@ -253,7 +253,7 @@ export class ScheduleService {
 
   // Load all schedules from backend
   refreshSchedules(): void {
-    const user = this.auth.currentUser();
+    const user = this.authService.getUser();
     if (!user) {
       console.error('No user logged in, cannot refresh schedules');
       return;

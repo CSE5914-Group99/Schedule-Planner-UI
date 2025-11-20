@@ -9,11 +9,20 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { Auth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from '@angular/fire/auth';
+import { Auth, authState, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
 import { BackendService } from '../../services/backend.service';
 import { User } from '../../models/user.model';
 import { isPlatformBrowser } from '@angular/common';
-import { ProfileDialogComponent } from '../profile-dialog/profile-dialog.component';
+import { AuthService } from '../../services/auth.service';
+import { UserDialogComponent } from '../user-dialog/user-dialog.component';
+import { firstValueFrom } from 'rxjs';
+
+export interface CurrentUser {
+  id: number;
+  email?: string;
+  username?: string;
+  google_uid?: string;
+}
 
 @Component({
   selector: 'app-header',
@@ -25,13 +34,14 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   router: Router = inject(Router);
   dialogRef: MatDialog = inject(MatDialog);
   auth: Auth = inject(Auth);
+  authService: AuthService = inject(AuthService);
   cdRef: ChangeDetectorRef = inject(ChangeDetectorRef);
   zone: NgZone = inject(NgZone);
   backendService: BackendService = inject(BackendService);
   platformId: object = inject(PLATFORM_ID);
 
   signedIn: boolean = false;
-  currentUser: User = {};
+  currentUser: User = { id: 0 };
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -43,18 +53,14 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngOnInit() {
-    onAuthStateChanged(this.auth, (user) => {
-      this.zone.run(() => {
-        this.signedIn = !!user;
-        this.currentUser = {
-          google_uid: user?.uid,
-          email: user?.email,
-        };
-
-        this.cdRef.markForCheck();
-      });
-    });
+  async ngOnInit() {
+    const user = await firstValueFrom(authState(this.auth));
+    if (user) {
+      const savedUser = await firstValueFrom(this.saveUserToService(user));
+      this.currentUser = savedUser;
+      this.signedIn = true;
+      this.cdRef.detectChanges();
+    }
   }
 
   homeClicked() {
@@ -63,26 +69,13 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   }
 
   savedSchedulesClicked() {
-    console.log('Saved Schedules button clicked');
+    this.router.navigate(['/schedules']);
   }
 
   signIn() {
     signInWithPopup(this.auth, new GoogleAuthProvider())
       .then((result) => {
-        console.log('User:', result.user);
-        this.currentUser = {
-          google_uid: result?.user?.uid,
-          email: result?.user?.email,
-        };
-        console.log('Current user: ', this.currentUser);
-        // this.backendService.getUser(currentUser.uid).subscribe(
-        //   (response: User) => {
-        //     currentUser = response;
-        //   },
-        //   (error) => {
-        //     console.log("Error fetching the user info: ", error)
-        //   }
-        // );
+        this.saveUserToService(result.user);
 
         this.cdRef.detectChanges();
         this.router.navigate(['/landing']);
@@ -92,23 +85,74 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       });
   }
 
+  saveUserToService(user: any) {
+    this.signedIn = !!user;
+    this.currentUser = {
+      id: 0,
+      google_uid: user?.uid,
+      email: user?.email,
+      username: user?.displayName,
+    };
+    this.authService.setUser(this.currentUser);
+
+    if (this.authService.checkIfExists()) {
+      console.log('User exists in backend');
+      return this.backendService.getUserByGoogleUid(user.uid); // returns Observable<User>
+    } else {
+      console.log('User does not exist in backend, creating user');
+      return this.backendService.createUser(this.currentUser); // returns Observable<User>
+    }
+  }
+
   signOut() {
     console.log('Sign out button clicked');
+    this.authService.setUser({ id: 0 });
+    this.signedIn = false;
+    this.currentUser = { id: 0 };
     this.auth.signOut().then(() => {
       this.router.navigate(['/landing']);
     });
   }
 
   viewProfile() {
-    this.dialogRef.open(ProfileDialogComponent, {
-      data: { user: this.currentUser },
-      backdropClass: 'backdrop',
-    });
+    if (!this.signedIn || !this.currentUser.id) {
+      console.warn('User not ready yet');
+      return;
+    }
+
+    this.dialogRef
+      .open(UserDialogComponent, {
+        data: { mode: 'edit', user: this.currentUser },
+        backdropClass: 'backdrop',
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.backendService.updateUser(this.currentUser.id, result).subscribe({
+            next: (updatedUser: User) => {
+              this.currentUser = updatedUser;
+              this.authService.setUser(this.currentUser);
+            },
+            error: (err) => console.error('Error updating user:', err),
+          });
+        }
+      });
   }
 
   deleteAccount() {
-    if (this.currentUser.google_uid) {
-      this.backendService.deleteUserById(this.currentUser.google_uid);
-    }
+    let user: User = this.authService.getUser();
+    this.backendService.deleteUserById(user.id?.toString() || '').subscribe({
+      next: () => {
+        this.authService.setUser({ id: 0 });
+        this.signedIn = false;
+        this.currentUser = { id: 0 };
+        this.auth.signOut().then(() => {
+          this.router.navigate(['/landing']);
+        });
+      },
+      error: (err) => {
+        console.error('Error deleting user:', err);
+      },
+    });
   }
 }

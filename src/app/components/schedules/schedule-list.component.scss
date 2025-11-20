@@ -1,6 +1,8 @@
 .schedule-list-container {
   padding: 2rem;
-  padding-top: 80px; // Account for fixed header
+  padding-top: var(--header-height);
+  padding-bottom: var(--footer-height);
+  overflow-y: auto;
   max-width: 1400px;
   margin: 0 auto;
 

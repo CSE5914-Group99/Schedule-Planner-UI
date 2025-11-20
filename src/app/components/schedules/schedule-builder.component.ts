@@ -99,7 +99,7 @@ export class ScheduleBuilderComponent implements OnInit {
   }
 
   loadSchedule() {
-    const user = this.authService.currentUser();
+    const user = this.authService.getUser();
     if (!user) {
       this.router.navigate(['/login']);
       return;

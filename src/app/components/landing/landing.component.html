@@ -19,8 +19,8 @@
     <aside class="card side">
       <h4>Estimated Difficulty</h4>
       <p class="muted">
-        This schedule has an estimated difficulty of <strong>{{ items.length * 2 }}</strong> hours
-        per week
+        This schedule has an estimated difficulty of
+        <strong>{{ schedule.difficultyScore }}</strong> hours per week
       </p>
       <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
 
@@ -44,37 +44,8 @@
       <button class="btn" (click)="router.navigate(['/schedules'])">View saved schedules</button>
     </aside>
 
-    <!-- calendar (read-only favorite schedule preview) -->
-    <section class="card flex1">
-      <h4 class="muted">Favorite schedule preview</h4>
-
-      @if (favoriteSchedule()) {
-        <div class="favorite-info">
-          <strong>{{ favoriteSchedule()!.name }}</strong> ⭐
-        </div>
-      } @else {
-        <p class="muted no-favorite-banner">
-          No favorite schedule selected. Visit "View saved schedules" to mark a schedule as
-          favorite!
-        </p>
-      }
-
-      <div class="weekgrid">
-        <div class="head cell">Time</div>
-        <div class="head cell" *ngFor="let d of days">{{ d }}</div>
-
-        <ng-container *ngFor="let t of times">
-          <div class="time cell">{{ t }}</div>
-          <div class="slot cell" *ngFor="let d of days">
-            <div class="slot-items">
-              <div class="pill" *ngFor="let it of items | byDayTime: d : t">
-                {{ it.title }}
-              </div>
-            </div>
-          </div>
-        </ng-container>
-      </div>
-    </section>
+    <!-- Schedule -->
+    <app-weekly-schedule [schedule]="schedule"></app-weekly-schedule>
   </div>
 
   <!-- builder form removed on landing (read-only page) -->
