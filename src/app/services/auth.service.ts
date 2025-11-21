@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { User } from '../models/user.model';
 import { BackendService } from './backend.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,9 +10,26 @@ export class AuthService {
   private currentUser: User = { google_uid: '' };
   private readonly backendService = inject(BackendService);
   private readonly dialog = inject(MatDialog);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          this.currentUser = JSON.parse(stored);
+        } catch (e) {
+          console.error('Failed to parse stored user', e);
+        }
+      }
+    }
+  }
 
   setUser(user: User) {
     this.currentUser = user;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
   }
 
   getUser(): User {

@@ -45,6 +45,9 @@ export class LandingComponent implements OnInit {
 
   // Use computed signal from service
   favoriteSchedule = this.scheduleService.favoriteSchedule;
+  
+  // Store flattened items for upcoming calculation
+  allItems: ScheduleItem[] = [];
 
   constructor() {
     this.user = this.auth.getUser();
@@ -53,6 +56,7 @@ export class LandingComponent implements OnInit {
         next: (s: Schedule) => {
           console.log('Favorite schedule loaded:', s);
           this.schedule = s;
+          this.mapScheduleToItems(s);
           console.log(this.schedule);
         },
         error: (err) => {
@@ -66,34 +70,39 @@ export class LandingComponent implements OnInit {
       const favorite = this.favoriteSchedule();
       console.log('Favorite schedule changed:', favorite);
       if (favorite) {
+        this.schedule = favorite;
         this.mapScheduleToItems(favorite);
       } else {
         console.log('No favorite schedule found');
         this.upcoming = [];
+        this.allItems = [];
       }
     });
   }
 
   ngOnInit() {
     console.log('Landing component initialized');
+    if (!this.user || !this.user.google_uid) {
+      this.router.navigate(['/login']);
+      return;
+    }
     // Load schedules from backend
     this.scheduleService.refreshSchedules();
   }
 
   mapScheduleToItems(schedule: any) {
     console.log('Mapping schedule to items:', schedule);
-    const mapped: ScheduleItem[] = [];
+    this.allItems = [];
 
     // Map courses
     schedule.courses?.forEach((course: any) => {
-      console.log('Processing course:', course);
       course.repeatDays?.forEach((day: string) => {
-        mapped.push({
+        this.allItems.push({
           id: course.id || `course-${course.courseId}`,
           title: course.courseId,
           courseId: course.courseId,
           instructor: course.instructor,
-          date: undefined,
+          date: day, // Store day name in date field for now
           start: course.startTime,
           end: course.endTime,
           repeats: true,
@@ -105,13 +114,12 @@ export class LandingComponent implements OnInit {
 
     // Map events
     schedule.events?.forEach((event: any) => {
-      console.log('Processing event:', event);
       event.repeatDays?.forEach((day: string) => {
-        mapped.push({
+        this.allItems.push({
           id: event.id || `event-${event.title}`,
           title: event.title,
           description: event.description,
-          date: undefined,
+          date: day, // Store day name in date field for now
           start: event.startTime,
           end: event.endTime,
           repeats: true,
@@ -121,12 +129,51 @@ export class LandingComponent implements OnInit {
       });
     });
 
-    console.log('Mapped items:', mapped);
+    console.log('Mapped items:', this.allItems);
     this.calculateUpcoming();
   }
 
   calculateUpcoming() {
-    const nowKey = new Date().toISOString().slice(0, 16);
+    if (this.allItems.length === 0) {
+      this.upcoming = [];
+      return;
+    }
+
+    const daysMap: { [key: string]: number } = {
+      'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 
+      'Thursday': 4, 'Friday': 5, 'Saturday': 6
+    };
+
+    const now = new Date();
+    const currentDayIndex = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Calculate minutes until next occurrence for each item
+    const itemsWithDiff = this.allItems.map(item => {
+      const itemDayIndex = daysMap[item.date || ''] ?? -1;
+      if (itemDayIndex === -1 || !item.start) return { item, diff: Infinity };
+
+      const [startH, startM] = item.start.split(':').map(Number);
+      const itemStartMinutes = startH * 60 + startM;
+
+      let dayDiff = itemDayIndex - currentDayIndex;
+      
+      // If it's today but earlier, or a past day, move to next week
+      if (dayDiff < 0 || (dayDiff === 0 && itemStartMinutes < currentMinutes)) {
+        dayDiff += 7;
+      }
+
+      const totalMinutesDiff = (dayDiff * 24 * 60) + (itemStartMinutes - currentMinutes);
+      return { item, diff: totalMinutesDiff };
+    });
+
+    // Sort by time difference and take top 5
+    this.upcoming = itemsWithDiff
+      .sort((a, b) => a.diff - b.diff)
+      .slice(0, 5)
+      .map(x => x.item);
+      
+    this.cdRef.markForCheck();
   }
 
   // call backend health endpoint and show result

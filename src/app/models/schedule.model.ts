@@ -27,6 +27,8 @@ export interface Course {
   term?: Term; // e.g., "Fall 2023"
   campus?: Campus; // e.g., "Main", "Lima"
   repeatDays?: DayOfWeek[]; // Days this course repeats
+  status?: string; // e.g. "Open", "Waitlist"
+  ratingDetails?: any; // Detailed grading analysis
 }
 
 export interface Event {
@@ -54,6 +56,7 @@ export interface Schedule {
   campus?: Campus; // e.g., "Main", "Lima"
   createdAt?: string;
   updatedAt?: string;
+  gradingDetails?: any; // Detailed grading analysis
 }
 
 // Backend API payload format for creating/updating schedules

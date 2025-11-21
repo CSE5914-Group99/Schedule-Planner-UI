@@ -35,7 +35,7 @@
           [style.gridRowEnd]="getRowEnd(course.endTime || '08:00')"
           title="{{ course.courseId }} • {{ course.instructor }}"
         >
-          {{ course.title }}
+          {{ course.title && course.title !== 'Untitled Course' ? course.title : course.courseId }}
         </div>
       }
     }
