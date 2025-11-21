@@ -4,7 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ScheduleService } from '../../services/schedule.service';
 import { AuthService } from '../../services/auth.service';
-import { Course, Event, DayOfWeek, ScheduleItem, Term, Campus, Schedule } from '../../models/schedule.model';
+import {
+  Course,
+  Event,
+  DayOfWeek,
+  ScheduleItem,
+  Term,
+  Campus,
+  Schedule,
+} from '../../models/schedule.model';
 import { CourseDialogComponent } from './course-dialog.component';
 import { EventDialogComponent } from './event-dialog.component';
 import { ScheduleAnalyzerComponent } from './schedule-analyzer/schedule-analyzer.component';
@@ -14,7 +22,13 @@ import { User } from '../../models/user.model';
 @Component({
   selector: 'app-schedule-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, CourseDialogComponent, EventDialogComponent, ScheduleAnalyzerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CourseDialogComponent,
+    EventDialogComponent,
+    ScheduleAnalyzerComponent,
+  ],
   templateUrl: './schedule-builder.component.html',
   styleUrls: ['./schedule-builder.component.scss'],
 })
@@ -175,9 +189,9 @@ export class ScheduleBuilderComponent implements OnInit {
 
       // Parse item times
       if (!item.startTime || !item.endTime) return false;
-      
+
       const [startHour, startMinute] = item.startTime.split(':').map(Number);
-      
+
       const itemStart = startHour * 60 + startMinute;
 
       // Check if item starts in this slot
@@ -286,7 +300,7 @@ export class ScheduleBuilderComponent implements OnInit {
   getCourseDifficulty(itemId: string): number | null {
     const sched = this.schedule();
     if (!sched) return null;
-    const course = sched.courses.find(c => c.id === itemId);
+    const course = sched.courses.find((c) => c.id === itemId);
     return course?.difficultyRating || null;
   }
 
@@ -302,28 +316,28 @@ export class ScheduleBuilderComponent implements OnInit {
     if (this.isGeneratedMode()) {
       const schedules = this.generatedSchedules();
       // Check if any schedule needs analysis (heuristic: score is 0)
-      const needsAnalysis = schedules.some(s => !s.difficultyScore || s.difficultyScore === 0);
-      
+      const needsAnalysis = schedules.some((s) => !s.difficultyScore || s.difficultyScore === 0);
+
       if (needsAnalysis) {
         this.analyzing.set(true);
         this.showAnalyzer.set(true); // Show panel immediately
-        
+
         this.backendService.analyzeSchedules(schedules).subscribe({
           next: (analyzedSchedules) => {
             if (analyzedSchedules && analyzedSchedules.length > 0) {
               // Update the generated schedules with the analyzed versions
               this.generatedSchedules.set(analyzedSchedules);
-              
+
               // Refresh the current view with the analyzed version of the selected schedule
               this.selectGeneratedSchedule(this.selectedGeneratedIndex());
             }
             this.analyzing.set(false);
           },
           error: (err) => {
-            console.error("Analysis failed", err);
+            console.error('Analysis failed', err);
             this.analyzing.set(false);
-            this.errorMessage.set("Failed to analyze schedules.");
-          }
+            this.errorMessage.set('Failed to analyze schedules.');
+          },
         });
       } else {
         this.showAnalyzer.set(true);
@@ -333,26 +347,29 @@ export class ScheduleBuilderComponent implements OnInit {
       if (!current) return;
 
       // Check if analysis is needed (e.g. difficultyScore is 0 or missing)
-      if ((!current.difficultyScore || current.difficultyScore === 0) && current.courses.length > 0) {
-          this.analyzing.set(true);
-          this.showAnalyzer.set(true); // Show panel immediately
-          
-          this.backendService.analyzeSchedules([current]).subscribe({
-              next: (analyzedSchedules) => {
-                  if (analyzedSchedules && analyzedSchedules.length > 0) {
-                      const analyzed = analyzedSchedules[0];
-                      this.scheduleService.setCurrentSchedule(analyzed);
-                  }
-                  this.analyzing.set(false);
-              },
-              error: (err) => {
-                  console.error("Analysis failed", err);
-                  this.analyzing.set(false);
-                  this.errorMessage.set("Failed to analyze schedule.");
-              }
-          });
+      if (
+        (!current.difficultyScore || current.difficultyScore === 0) &&
+        current.courses.length > 0
+      ) {
+        this.analyzing.set(true);
+        this.showAnalyzer.set(true); // Show panel immediately
+
+        this.backendService.analyzeSchedules([current]).subscribe({
+          next: (analyzedSchedules) => {
+            if (analyzedSchedules && analyzedSchedules.length > 0) {
+              const analyzed = analyzedSchedules[0];
+              this.scheduleService.setCurrentSchedule(analyzed);
+            }
+            this.analyzing.set(false);
+          },
+          error: (err) => {
+            console.error('Analysis failed', err);
+            this.analyzing.set(false);
+            this.errorMessage.set('Failed to analyze schedule.');
+          },
+        });
       } else {
-          this.showAnalyzer.set(true);
+        this.showAnalyzer.set(true);
       }
     }
   }
@@ -373,12 +390,12 @@ export class ScheduleBuilderComponent implements OnInit {
     this.originalSchedule.set(JSON.parse(JSON.stringify(sched)));
 
     // Prepare payload
-    // We keep the course details as-is. If a course has specific times/section, 
+    // We keep the course details as-is. If a course has specific times/section,
     // the backend will treat it as "locked". If it only has an ID, it will be optimized.
-    const courses = sched.courses.map(c => ({
+    const courses = sched.courses.map((c) => ({
       ...c,
       campus: this.selectedCampus(),
-      term: this.selectedTerm()
+      term: this.selectedTerm(),
     }));
 
     const events = sched.events;
@@ -392,22 +409,23 @@ export class ScheduleBuilderComponent implements OnInit {
           this.generatedSchedules.set(response.schedules);
           this.isGeneratedMode.set(true);
           this.selectGeneratedSchedule(0);
-          
+
           // Automatically open analyzer to show scores
           // this.openAnalyzer();
-          
+
           this.showSuccessMessage.set(true);
           setTimeout(() => this.showSuccessMessage.set(false), 3000);
-          
         } else {
-          this.errorMessage.set("No valid schedules could be generated with the given constraints.");
+          this.errorMessage.set(
+            'No valid schedules could be generated with the given constraints.',
+          );
         }
       },
       error: (err) => {
         this.generating.set(false);
-        this.errorMessage.set("Failed to generate schedule. Please try again.");
-        console.error("Generation error:", err);
-      }
+        this.errorMessage.set('Failed to generate schedule. Please try again.');
+        console.error('Generation error:', err);
+      },
     });
   }
 
@@ -416,26 +434,26 @@ export class ScheduleBuilderComponent implements OnInit {
     this.selectedGeneratedIndex.set(index);
     const genSched = this.generatedSchedules()[index];
     console.log('Selected schedule data:', genSched);
-    
+
     const original = this.originalSchedule();
-    
+
     if (!original) return;
 
     // Merge generated courses with original metadata (name, etc)
     const updatedSchedule = {
-       ...original, // Keep original ID, Name, etc.
-       courses: genSched.courses,
-       events: genSched.events,
-       difficultyScore: genSched.difficultyScore,
-       weeklyHours: genSched.weeklyHours,
-       creditHours: genSched.creditHours
+      ...original, // Keep original ID, Name, etc.
+      courses: genSched.courses,
+      events: genSched.events,
+      difficultyScore: genSched.difficultyScore,
+      weeklyHours: genSched.weeklyHours,
+      creditHours: genSched.creditHours,
     };
-    
+
     // Assign IDs and colors to new courses
     updatedSchedule.courses = updatedSchedule.courses.map((c: any, i: number) => ({
       ...c,
       id: `${Date.now()}-${i}`,
-      color: this.generateColor('course', i)
+      color: this.generateColor('course', i),
     }));
 
     // Force a new object reference for the signal to detect change
@@ -452,7 +470,7 @@ export class ScheduleBuilderComponent implements OnInit {
   discardGeneratedSchedule() {
     const original = this.originalSchedule();
     if (original) {
-        this.scheduleService.setCurrentSchedule(original);
+      this.scheduleService.setCurrentSchedule(original);
     }
     this.isGeneratedMode.set(false);
     this.generatedSchedules.set([]);
@@ -490,9 +508,7 @@ export class ScheduleBuilderComponent implements OnInit {
     // Check for name conflicts
     const existingSchedules = this.scheduleService.schedules();
     const isDuplicate = existingSchedules.some(
-      (s) =>
-        s.name.trim().toLowerCase() === trimmedName.toLowerCase() &&
-        s.id !== sched.id,
+      (s) => s.name.trim().toLowerCase() === trimmedName.toLowerCase() && s.id !== sched.id,
     );
 
     if (isDuplicate) {
@@ -500,9 +516,7 @@ export class ScheduleBuilderComponent implements OnInit {
         `A schedule with the name "${trimmedName}" already exists. Please choose a different name.`,
       );
       setTimeout(() => {
-        const nameInput = document.querySelector(
-          '.schedule-name-input',
-        ) as HTMLInputElement;
+        const nameInput = document.querySelector('.schedule-name-input') as HTMLInputElement;
         if (nameInput) {
           nameInput.focus();
           nameInput.select();
@@ -536,7 +550,7 @@ export class ScheduleBuilderComponent implements OnInit {
     // Manually set campus and term before saving
     scheduleToSave.campus = this.selectedCampus();
     scheduleToSave.term = this.selectedTerm();
-    
+
     //also delete the id
     for (const course of scheduleToSave.courses) {
       course.campus = this.selectedCampus();
@@ -554,8 +568,8 @@ export class ScheduleBuilderComponent implements OnInit {
 
     console.log('Final schedule data to save:', scheduleToSave);
     let user: User = this.authService.getUser();
-    
-    const request = scheduleToSave.id 
+
+    const request = scheduleToSave.id
       ? this.backendService.saveSchedule(user.google_uid, scheduleToSave)
       : this.backendService.addSchedule(user.google_uid, scheduleToSave);
 
@@ -563,19 +577,19 @@ export class ScheduleBuilderComponent implements OnInit {
       next: (savedSchedule) => {
         this.saving.set(false);
         this.showSuccessMessage.set(true);
-        
+
         // Update local schedule with saved details (ID, campus, term)
         const current = this.schedule();
         if (current) {
-            const updated = {
-                ...current,
-                id: savedSchedule.id || current.id,
-                campus: this.selectedCampus(),
-                term: this.selectedTerm()
-            };
-            this.scheduleService.setCurrentSchedule(updated);
+          const updated = {
+            ...current,
+            id: savedSchedule.id || current.id,
+            campus: this.selectedCampus(),
+            term: this.selectedTerm(),
+          };
+          this.scheduleService.setCurrentSchedule(updated);
         }
-        
+
         // Explicitly mark as saved
         this.scheduleService.hasUnsavedChanges.set(false);
 

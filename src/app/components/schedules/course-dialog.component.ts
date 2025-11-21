@@ -14,12 +14,12 @@ import { CourseChooserDialogComponent } from '../section-chooser-dialog/section-
   selector: 'app-course-dialog',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    MatCheckboxModule, 
-    MatSelectModule, 
+    CommonModule,
+    FormsModule,
+    MatCheckboxModule,
+    MatSelectModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
   ],
   templateUrl: './course-dialog.component.html',
   styleUrls: ['./course-dialog.component.scss'],
@@ -39,7 +39,7 @@ export class CourseDialogComponent implements OnInit {
   sectionNumber = signal(0);
   courseId = signal('');
   uniqueId = signal<string | undefined>(undefined);
-  
+
   // Search state
   sections = signal<any[]>([]);
   isSearching = signal(false);
@@ -113,7 +113,7 @@ export class CourseDialogComponent implements OnInit {
         this.isSearching.set(false);
         console.error('Search error:', err);
         this.searchError.set('Failed to search courses. Please check the ID and try again.');
-      }
+      },
     });
   }
 
@@ -121,25 +121,25 @@ export class CourseDialogComponent implements OnInit {
     // Populate form with section details
     if (section.instructor) this.instructor.set(section.instructor);
     if (section.session) this.sectionNumber.set(section.session);
-    
+
     // We might want to store other details like time/days if the Course model supports it
     // The Course model has startTime, endTime, repeatDays.
     // But the dialog doesn't expose inputs for them yet (except implicitly via manual entry maybe?)
     // The user request says "drop down sections for me to choose".
     // And "if the user choose a section then save the section's json to memory".
-    
+
     // We should probably store the whole section object or merge it into the course being saved.
-    // For now, let's just populate what we have inputs for, and maybe store the rest in a hidden way 
+    // For now, let's just populate what we have inputs for, and maybe store the rest in a hidden way
     // or update the onSave to use the selected section data.
-    
+
     // Let's store the selected section in a signal or property
     this.selectedSectionData = section;
   }
-  
+
   selectedSectionData: any = null;
 
   onSectionSelect(session: number) {
-    const section = this.sections().find(s => s.session === session);
+    const section = this.sections().find((s) => s.session === session);
     if (section) {
       this.selectSection(section);
     } else {
@@ -171,7 +171,7 @@ export class CourseDialogComponent implements OnInit {
         mode: this.selectedSectionData.mode,
         status: this.selectedSectionData.status,
         campus: this.selectedSectionData.campus,
-        term: this.selectedSectionData.semester // API returns 'semester', model uses 'term' (or we map it)
+        term: this.selectedSectionData.semester, // API returns 'semester', model uses 'term' (or we map it)
       };
     } else {
       // Manual entry or no section selected

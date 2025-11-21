@@ -273,14 +273,14 @@ export class ScheduleService {
   private scheduleToPayload(schedule: Schedule): SchedulePayload {
     // Send full objects to match new backend schema
     // The backend accepts 'courses' and 'events' lists directly
-    
-    // We still populate items/activities for legacy support if needed, 
+
+    // We still populate items/activities for legacy support if needed,
     // but we should primarily rely on the new fields if the backend supports them.
     // Based on backend code, it looks for 'courses' and 'events' in SchedulePayload.
-    
+
     // However, the frontend SchedulePayload interface might need updating or we just cast it.
     // Let's construct a payload that satisfies the backend.
-    
+
     const payload: any = {
       name: schedule.name,
       favorite: schedule.favorite,
@@ -291,9 +291,9 @@ export class ScheduleService {
       gradingDetails: (schedule as any).gradingDetails, // Pass through if exists
       difficultyScore: schedule.difficultyScore,
       weeklyHours: schedule.weeklyHours,
-      creditHours: schedule.creditHours
+      creditHours: schedule.creditHours,
     };
-    
+
     return payload;
   }
 
@@ -317,7 +317,7 @@ export class ScheduleService {
       courses = data.courses.map((c: any, index: number) => ({
         ...c,
         id: c.id || `course-${data.scheduleId || data.id}-${index}`,
-        color: this.generateColor('course', index)
+        color: this.generateColor('course', index),
       }));
     } else {
       // Legacy format: map from items
@@ -342,7 +342,7 @@ export class ScheduleService {
       events = data.events.map((e: any, index: number) => ({
         ...e,
         id: e.id || `event-${data.scheduleId || data.id}-${index}`,
-        color: this.generateColor('event', index)
+        color: this.generateColor('event', index),
       }));
     } else {
       // Legacy format: map from activities
@@ -372,18 +372,18 @@ export class ScheduleService {
       createdAt: data.createdAt || data.created_at,
       updatedAt: data.updatedAt || data.updated_at,
     };
-    
+
     // Map grading details if present
     if (data.gradingDetails || data.grading_details) {
-        (schedule as any).gradingDetails = data.gradingDetails || data.grading_details;
-        
-        // Fallback if top-level properties were missing but exist in details
-        if (schedule.difficultyScore == null) {
-             schedule.difficultyScore = (schedule as any).gradingDetails.adjusted_difficulty;
-        }
-        if (schedule.weeklyHours == null) {
-             schedule.weeklyHours = (schedule as any).gradingDetails.time_load;
-        }
+      (schedule as any).gradingDetails = data.gradingDetails || data.grading_details;
+
+      // Fallback if top-level properties were missing but exist in details
+      if (schedule.difficultyScore == null) {
+        schedule.difficultyScore = (schedule as any).gradingDetails.adjusted_difficulty;
+      }
+      if (schedule.weeklyHours == null) {
+        schedule.weeklyHours = (schedule as any).gradingDetails.time_load;
+      }
     }
 
     console.log('Converted schedule:', schedule);

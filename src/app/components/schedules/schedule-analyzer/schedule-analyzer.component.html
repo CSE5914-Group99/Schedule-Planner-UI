@@ -5,8 +5,13 @@
   </div>
 
   <div class="metrics-grid">
-    <div class="metric-card difficulty" [class.high]="(schedule.difficultyScore || 0) > 7" [class.medium]="(schedule.difficultyScore || 0) > 4 && (schedule.difficultyScore || 0) <= 7" [class.low]="(schedule.difficultyScore || 0) <= 4">
-      <div class="metric-value">{{ schedule.difficultyScore | number:'1.1-1' }}</div>
+    <div
+      class="metric-card difficulty"
+      [class.high]="(schedule.difficultyScore || 0) > 7"
+      [class.medium]="(schedule.difficultyScore || 0) > 4 && (schedule.difficultyScore || 0) <= 7"
+      [class.low]="(schedule.difficultyScore || 0) <= 4"
+    >
+      <div class="metric-value">{{ schedule.difficultyScore | number: '1.1-1' }}</div>
       <div class="metric-label">Difficulty Score</div>
     </div>
     <div class="metric-card">
@@ -26,7 +31,13 @@
         <div class="course-item">
           <div class="course-header">
             <span class="course-id">{{ course.courseId }}</span>
-            <span class="course-rating" [class.high]="(course.difficultyRating || 0) > 3.5" [class.medium]="(course.difficultyRating || 0) > 2.5 && (course.difficultyRating || 0) <= 3.5">
+            <span
+              class="course-rating"
+              [class.high]="(course.difficultyRating || 0) > 3.5"
+              [class.medium]="
+                (course.difficultyRating || 0) > 2.5 && (course.difficultyRating || 0) <= 3.5
+              "
+            >
               Difficulty: {{ course.difficultyRating || 'N/A' }}
             </span>
           </div>
@@ -48,7 +59,10 @@
           </div>
           @if (course.difficultyRating) {
             <div class="rating-bar-container">
-              <div class="rating-bar" [style.width.%]="((course.difficultyRating || 0) / 5) * 100"></div>
+              <div
+                class="rating-bar"
+                [style.width.%]="((course.difficultyRating || 0) / 5) * 100"
+              ></div>
             </div>
           }
         </div>

@@ -45,13 +45,13 @@ export class LandingComponent implements OnInit {
 
   // Use computed signal from service
   favoriteSchedule = this.scheduleService.favoriteSchedule;
-  
+
   // Store flattened items for upcoming calculation
   allItems: ScheduleItem[] = [];
 
   constructor() {
     this.user = this.auth.getUser();
-    
+
     // Use effect to react to favorite schedule changes
     effect(() => {
       const favorite = this.favoriteSchedule();
@@ -139,8 +139,13 @@ export class LandingComponent implements OnInit {
     }
 
     const daysMap: { [key: string]: number } = {
-      'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 
-      'Thursday': 4, 'Friday': 5, 'Saturday': 6
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
     };
 
     const now = new Date();
@@ -148,7 +153,7 @@ export class LandingComponent implements OnInit {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     // Calculate minutes until next occurrence for each item
-    const itemsWithDiff = this.allItems.map(item => {
+    const itemsWithDiff = this.allItems.map((item) => {
       const itemDayIndex = daysMap[item.date || ''] ?? -1;
       if (itemDayIndex === -1 || !item.start) return { item, diff: Infinity };
 
@@ -156,13 +161,13 @@ export class LandingComponent implements OnInit {
       const itemStartMinutes = startH * 60 + startM;
 
       let dayDiff = itemDayIndex - currentDayIndex;
-      
+
       // If it's today but earlier, or a past day, move to next week
       if (dayDiff < 0 || (dayDiff === 0 && itemStartMinutes < currentMinutes)) {
         dayDiff += 7;
       }
 
-      const totalMinutesDiff = (dayDiff * 24 * 60) + (itemStartMinutes - currentMinutes);
+      const totalMinutesDiff = dayDiff * 24 * 60 + (itemStartMinutes - currentMinutes);
       return { item, diff: totalMinutesDiff };
     });
 
@@ -170,8 +175,8 @@ export class LandingComponent implements OnInit {
     this.upcoming = itemsWithDiff
       .sort((a, b) => a.diff - b.diff)
       .slice(0, 5)
-      .map(x => x.item);
-      
+      .map((x) => x.item);
+
     this.cdRef.markForCheck();
   }
 

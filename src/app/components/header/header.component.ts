@@ -119,7 +119,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
     this.dialogRef
       .open(UserDialogComponent, {
-        data: { mode: 'edit', user: this.currentUser },
+        data: { mode: 'edit', user: this.authService.getUser() },
         backdropClass: 'backdrop',
       })
       .afterClosed()

@@ -93,18 +93,16 @@ export class BackendService {
   getCoursesFromUserInput(course: Course, campus: string, term: Term): Observable<any> {
     let subject = course.courseId.replace(/[^A-Z]/gi, '').toUpperCase();
     let number = course.courseId.replace(/[^0-9]/g, '');
-    
+
     // Construct query parameters correctly
     const params = new URLSearchParams({
       subject: subject,
       course_number: number,
       campus: campus,
-      term: term
+      term: term,
     });
 
-    return this.http.get<any>(
-      `${this.base_url}/course-search?${params.toString()}`
-    );
+    return this.http.get<any>(`${this.base_url}/course-search?${params.toString()}`);
   }
 
   //I think these are unused too?
@@ -142,14 +140,14 @@ export class BackendService {
     term: string,
     campus: string,
     events: Event[],
-    preferences: any = null
+    preferences: any = null,
   ): Observable<any> {
     const payload = {
       courses,
       term,
       campus,
       events,
-      preferences
+      preferences,
     };
     return this.http.post<any>(`${this.base_url}/generate-schedule/`, payload);
   }
@@ -157,7 +155,7 @@ export class BackendService {
   analyzeSchedules(schedules: Schedule[], preferences: any = null): Observable<Schedule[]> {
     return this.http.post<Schedule[]>(`${this.base_url}/generate-schedule/analyze`, {
       schedules,
-      preferences
+      preferences,
     });
   }
 

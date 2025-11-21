@@ -30,12 +30,12 @@ export interface Course2 {
   selector: 'app-course-chooser-dialog',
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatCardModule, MatButtonModule],
-  templateUrl: './section-chooser-dialog.component.html'
+  templateUrl: './section-chooser-dialog.component.html',
 })
 export class CourseChooserDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<CourseChooserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public course: Course2
+    @Inject(MAT_DIALOG_DATA) public course: Course2,
   ) {}
 
   choose(section: Section) {
@@ -45,20 +45,20 @@ export class CourseChooserDialogComponent {
   }
 
   mapSectionToCourse(section: any): Course {
-  return {
-    courseId: section.courseId.replace(/\s+/g, ''),
-    id: section.id ?? undefined,
-    title: section.title,
-    instructor: section.instructor,
-    startTime: section.startTime,
-    endTime: section.endTime,
-    type: section.type,
-    difficultyRating: section.difficultyRating ?? undefined,
-    mode: section.mode,
-    session: section.session,
-    term: section.semester as Term,
-    campus: section.campus as Campus,
-    repeatDays: section.repeatDays as DayOfWeek[],
-  };
-}
+    return {
+      courseId: section.courseId.replace(/\s+/g, ''),
+      id: section.id ?? undefined,
+      title: section.title,
+      instructor: section.instructor,
+      startTime: section.startTime,
+      endTime: section.endTime,
+      type: section.type,
+      difficultyRating: section.difficultyRating ?? undefined,
+      mode: section.mode,
+      session: section.session,
+      term: section.semester as Term,
+      campus: section.campus as Campus,
+      repeatDays: section.repeatDays as DayOfWeek[],
+    };
+  }
 }
