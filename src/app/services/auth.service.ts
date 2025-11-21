@@ -6,7 +6,7 @@ import { UserDialogComponent } from '../components/user-dialog/user-dialog.compo
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private currentUser: User = { google_uid: '' };
+  private currentUser: User = { google_uid: '-' };
   private readonly backendService = inject(BackendService);
   private readonly dialog = inject(MatDialog);
 
@@ -19,6 +19,10 @@ export class AuthService {
   }
 
   checkIfExists(): boolean {
+    if (this.currentUser.google_uid === '-') {
+      console.log('No Google UID found for current user.');
+      return false;
+    }
     const response = this.backendService.getUserByGoogleUid(this.currentUser.google_uid || '');
     response.subscribe({
       next: (user: User) => {

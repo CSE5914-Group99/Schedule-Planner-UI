@@ -7,6 +7,10 @@ export type DayOfWeek =
   | 'Saturday'
   | 'Sunday';
 
+export type Campus = 'Columbus' | 'Lima' | 'Mansfield' | 'Marion' | 'Newark' | 'Wooster';
+
+export type Term = 'Summer 2025' | 'Autumn 2025' | 'Spring 2026';
+
 export interface Course {
   courseId: string; // e.g., "CSE2331"
   id?: string;
@@ -18,6 +22,8 @@ export interface Course {
   difficultyRating?: number;
   mode?: string; // e.g., "In-person", "Online", "Hybrid"
   session?: number; // e.g., 1, 2, 3 for different sections
+  term?: Term; // e.g., "Fall 2023"
+  campus?: Campus; // e.g., "Main", "Lima"
   repeatDays?: DayOfWeek[]; // Days this course repeats
 }
 
@@ -27,6 +33,8 @@ export interface Event {
   description?: string;
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
+  term?: Term; // e.g., "Fall 2023"
+  campus?: Campus; // e.g., "Main", "Lima"
   repeatDays: DayOfWeek[]; // Days this event repeats
 }
 
@@ -39,6 +47,8 @@ export interface Schedule {
   difficultyScore?: number;
   weeklyHours?: number;
   creditHours?: number;
+  term?: Term; // e.g., "Fall 2023"
+  campus?: Campus; // e.g., "Main", "Lima"
   createdAt?: string;
   updatedAt?: string;
 }

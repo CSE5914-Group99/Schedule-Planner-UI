@@ -47,6 +47,12 @@
     .form-group {
       margin-bottom: 1.5rem;
 
+      &.checkbox {
+        margin-top: -1.5rem;
+        margin-bottom: 0rem;
+        padding-left: 0rem;
+      }
+
       label {
         display: block;
         margin-bottom: 0.5rem;

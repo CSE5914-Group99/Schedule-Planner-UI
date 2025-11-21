@@ -226,10 +226,10 @@
       }
     }
   }
-
   .calendar-container {
-    padding: 2rem;
-    overflow-x: auto;
+    flex: 5;
+    min-width: 0;
+    padding: 1rem;
   }
 
   .calendar-grid {
@@ -239,6 +239,7 @@
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     overflow: hidden;
+    width: 100%;
     min-width: 800px;
 
     .calendar-cell {
@@ -481,7 +482,99 @@
     }
 
     .calendar-container {
+      flex: 5;
+      min-width: 0;
       padding: 1rem;
     }
+  }
+}
+
+@media (max-width: 1024px) {
+  .calendar-layout {
+    flex-direction: column;
+  }
+  .calendar-sidebar {
+    width: 100%;
+    order: 2;
+  }
+}
+
+.calendar-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.calendar-sidebar {
+  flex: 1;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  min-width: 200px;
+
+  h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 0.875rem;
+      color: #1f2937;
+    }
+  }
+}
+
+.calendar-sidebar,
+.untimed-courses {
+  color: #1f2937; // dark gray text, matches your dialog styles
+
+  h3 {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #374151;
+  }
+
+  .untimed-course,
+  li {
+    color: #1f2937; // ensure list items are visible
+    font-size: 0.875rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    .course-courseId {
+      font-weight: 600;
+    }
+  }
+}
+
+.dropdown {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  color: #374151;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
   }
 }

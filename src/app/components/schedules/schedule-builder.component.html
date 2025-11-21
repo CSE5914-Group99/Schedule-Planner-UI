@@ -52,6 +52,27 @@
 
     <div class="toolbar-section">
       <label>
+        Campus:
+        <select
+          class="dropdown"
+          [value]="selectedCampus()"
+          (change)="selectedCampus.set($any($event.target).value)"
+        >
+          <option *ngFor="let campus of campuses" [value]="campus">{{ campus }}</option>
+        </select>
+      </label>
+
+      <label>
+        Term:
+        <select
+          class="dropdown"
+          [value]="selectedTerm()"
+          (change)="selectedTerm.set($any($event.target).value)"
+        >
+          <option *ngFor="let term of terms" [value]="term">{{ term }}</option>
+        </select>
+      </label>
+      <label>
         Start Hour:
         <input
           type="number"
@@ -82,58 +103,73 @@
 
   <!-- Calendar Grid -->
   @if (schedule()) {
-    <div class="calendar-container">
-      <div
-        class="calendar-grid"
-        [style.grid-template-columns]="'80px repeat(' + visibleDays().length + ', 1fr)'"
-      >
-        <!-- Header Row -->
-        <div class="calendar-cell header-cell corner-cell">Time</div>
-        @for (day of visibleDays(); track day) {
-          <div class="calendar-cell header-cell day-header">{{ day }}</div>
-        }
-
-        <!-- Time Slots -->
-        @for (timeSlot of timeSlots(); track timeSlot) {
-          <div class="calendar-cell time-cell">{{ timeSlot }}</div>
-
+    <div class="calendar-layout">
+      <div class="calendar-container">
+        <div
+          class="calendar-grid"
+          [style.grid-template-columns]="'80px repeat(' + visibleDays().length + ', 1fr)'"
+        >
+          <!-- Header Row -->
+          <div class="calendar-cell header-cell corner-cell">Time</div>
           @for (day of visibleDays(); track day) {
-            <div class="calendar-cell slot-cell" (click)="onSlotClick(day, timeSlot)">
-              @for (item of getItemsInSlot(day, timeSlot); track item.id) {
-                @if (item.startTime.startsWith(timeSlot.split(':')[0])) {
-                  <div
-                    class="schedule-item"
-                    [class.course-item]="item.type === 'course'"
-                    [class.event-item]="item.type === 'event'"
-                    [style.background]="
-                      item.color
-                        ? 'linear-gradient(135deg, ' +
-                          item.color +
-                          ' 0%, ' +
-                          item.color +
-                          'dd 100%)'
-                        : null
-                    "
-                    [style.grid-row]="'span ' + calculateItemSpan(item)"
-                    (click)="onItemClick(item, $event)"
-                  >
-                    <div class="item-content">
-                      <div class="item-title">{{ item.title }}</div>
-                      @if (item.instructor) {
-                        <div class="item-subtitle">{{ item.instructor }}</div>
-                      }
-                      @if (item.description && !item.instructor) {
-                        <div class="item-subtitle">{{ item.description }}</div>
-                      }
-                      <div class="item-time">{{ item.startTime }} - {{ item.endTime }}</div>
-                    </div>
-                  </div>
-                }
-              }
-            </div>
+            <div class="calendar-cell header-cell day-header">{{ day }}</div>
           }
-        }
+
+          <!-- Time Slots -->
+          @for (timeSlot of timeSlots(); track timeSlot) {
+            <div class="calendar-cell time-cell">{{ timeSlot }}</div>
+
+            @for (day of visibleDays(); track day) {
+              <div class="calendar-cell slot-cell" (click)="onSlotClick(day, timeSlot)">
+                @for (item of getItemsInSlot(day, timeSlot); track item.id) {
+                  @if (item.startTime.startsWith(timeSlot.split(':')[0])) {
+                    <div
+                      class="schedule-item"
+                      [class.course-item]="item.type === 'course'"
+                      [class.event-item]="item.type === 'event'"
+                      [style.background]="
+                        item.color
+                          ? 'linear-gradient(135deg, ' +
+                            item.color +
+                            ' 0%, ' +
+                            item.color +
+                            'dd 100%)'
+                          : null
+                      "
+                      [style.grid-row]="'span ' + calculateItemSpan(item)"
+                      (click)="onItemClick(item, $event)"
+                    >
+                      <div class="item-content">
+                        <div class="item-title">{{ item.title }}</div>
+                        @if (item.instructor) {
+                          <div class="item-subtitle">{{ item.instructor }}</div>
+                        }
+                        @if (item.description && !item.instructor) {
+                          <div class="item-subtitle">{{ item.description }}</div>
+                        }
+                        <div class="item-time">{{ item.startTime }} - {{ item.endTime }}</div>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            }
+          }
+        </div>
       </div>
+      <!-- Sidebar for untimed courses -->
+      <aside class="calendar-sidebar" *ngIf="getUntimedCourses().length > 0">
+        <h3>Untimed Courses</h3>
+        <ul>
+          <li
+            *ngFor="let course of getUntimedCourses()"
+            class="untimed-course"
+            (click)="editCourse(course)"
+          >
+            <span class="course-courseId">{{ course.courseId }}</span>
+          </li>
+        </ul>
+      </aside>
     </div>
   }
 

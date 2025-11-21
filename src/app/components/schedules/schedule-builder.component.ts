@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ScheduleService } from '../../services/schedule.service';
 import { AuthService } from '../../services/auth.service';
-import { Course, Event, DayOfWeek, ScheduleItem } from '../../models/schedule.model';
+import { Course, Event, DayOfWeek, ScheduleItem, Term, Campus } from '../../models/schedule.model';
 import { CourseDialogComponent } from './course-dialog.component';
 import { EventDialogComponent } from './event-dialog.component';
 
@@ -90,6 +90,13 @@ export class ScheduleBuilderComponent implements OnInit {
   saving = signal(false);
   errorMessage = signal<string | null>(null);
   showSuccessMessage = signal(false);
+
+  //Campus/term
+  campuses: Campus[] = ['Columbus', 'Lima', 'Mansfield', 'Marion', 'Newark', 'Wooster'];
+  terms: Term[] = ['Summer 2025', 'Autumn 2025', 'Spring 2026'];
+
+  selectedCampus = signal<Campus>('Columbus');
+  selectedTerm = signal<Term>('Summer 2025');
 
   ngOnInit() {
     this.generateTimeSlots();
@@ -300,6 +307,20 @@ export class ScheduleBuilderComponent implements OnInit {
     this.saving.set(true);
     this.errorMessage.set(null);
 
+    // Manually set campus and term before saving
+    sched.campus = this.selectedCampus();
+    sched.term = this.selectedTerm();
+    for (const course of sched.courses) {
+      course.campus = this.selectedCampus();
+      course.term = this.selectedTerm();
+    }
+    for (const event of sched.events) {
+      event.campus = this.selectedCampus();
+      event.term = this.selectedTerm();
+    }
+
+    console.log('Final schedule data to save:', sched);
+
     this.scheduleService.saveCurrentSchedule().subscribe({
       next: () => {
         this.saving.set(false);
@@ -328,5 +349,11 @@ export class ScheduleBuilderComponent implements OnInit {
 
   goToList() {
     this.router.navigate(['/schedules']);
+  }
+
+  getUntimedCourses(): Course[] {
+    const sched = this.schedule();
+    if (!sched) return [];
+    return sched.courses.filter((course) => !course.startTime || !course.endTime);
   }
 }

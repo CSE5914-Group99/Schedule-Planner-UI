@@ -2,11 +2,12 @@ import { Component, input, output, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Course, DayOfWeek } from '../../models/schedule.model';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-course-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatCheckboxModule],
   templateUrl: './course-dialog.component.html',
   styleUrls: ['./course-dialog.component.scss'],
 })
@@ -17,12 +18,9 @@ export class CourseDialogComponent implements OnInit {
   cancel = output<void>();
 
   // Form state
-  title = signal('');
-  courseId = signal('');
   instructor = signal('');
-  startTime = signal('08:00');
-  endTime = signal('09:00');
-  selectedDays = signal<Set<DayOfWeek>>(new Set());
+  sectionNumber = signal(0);
+  courseId = signal('');
 
   allDays: DayOfWeek[] = [
     'Monday',
@@ -35,34 +33,21 @@ export class CourseDialogComponent implements OnInit {
   ];
 
   isEdit = signal(false);
+  manualEntry: boolean = false;
   currentCourseId = signal<string | undefined>(undefined);
 
   ngOnInit() {
     const courseData = this.course();
     if (courseData) {
       this.isEdit.set(true);
-      this.currentCourseId.set(courseData.id);
-      this.title.set(courseData.title || '');
+      this.currentCourseId.set(courseData.courseId);
       this.courseId.set(courseData.courseId);
+      this.sectionNumber.set(courseData.session || 0);
       this.instructor.set(courseData.instructor || '');
-      this.startTime.set(courseData.startTime || '08:00');
-      this.endTime.set(courseData.endTime || '09:00');
-      this.selectedDays.set(new Set(courseData.repeatDays || []));
     }
-  }
-
-  toggleDay(day: DayOfWeek) {
-    const days = new Set(this.selectedDays());
-    if (days.has(day)) {
-      days.delete(day);
-    } else {
-      days.add(day);
+    if (this.sectionNumber() != 0) {
+      this.manualEntry = true;
     }
-    this.selectedDays.set(days);
-  }
-
-  isDaySelected(day: DayOfWeek): boolean {
-    return this.selectedDays().has(day);
   }
 
   onSave() {
@@ -71,19 +56,11 @@ export class CourseDialogComponent implements OnInit {
       return;
     }
 
-    if (this.selectedDays().size === 0) {
-      alert('Please select at least one day');
-      return;
-    }
-
     const course: Course = {
       id: this.currentCourseId(),
-      title: this.title().trim() || this.courseId().trim(),
       courseId: this.courseId().trim(),
       instructor: this.instructor().trim() || undefined,
-      startTime: this.startTime(),
-      endTime: this.endTime(),
-      repeatDays: Array.from(this.selectedDays()),
+      session: this.sectionNumber().valueOf() || undefined,
     };
 
     this.save.emit(course);

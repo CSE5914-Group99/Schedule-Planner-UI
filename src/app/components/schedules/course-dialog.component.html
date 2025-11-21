@@ -24,71 +24,38 @@
       <small>Enter the course code (e.g., CSE2331, MATH1151)</small>
     </div>
 
-    <div class="form-group">
-      <label for="title">Course Title</label>
-      <input
-        type="text"
-        id="title"
-        class="form-control"
-        placeholder="e.g., Data Structures"
-        [value]="title()"
-        (input)="title.set($any($event.target).value)"
-      />
-      <small>Optional - defaults to course ID if not provided</small>
+    <div class="form-group checkbox">
+      <mat-checkbox [(ngModel)]="manualEntry"> Manually enter course details </mat-checkbox>
     </div>
 
-    <div class="form-group">
-      <label for="instructor">Instructor</label>
-      <input
-        type="text"
-        id="instructor"
-        class="form-control"
-        placeholder="e.g., Dr. Smith"
-        [value]="instructor()"
-        (input)="instructor.set($any($event.target).value)"
-      />
-    </div>
-
-    <div class="form-row">
+    @if (manualEntry) {
       <div class="form-group">
-        <label for="startTime">Start Time <span class="required">*</span></label>
+        <label for="instructor">Instructor</label>
         <input
-          type="time"
-          id="startTime"
+          type="text"
+          id="instructor"
           class="form-control"
-          [value]="startTime()"
-          (input)="startTime.set($any($event.target).value)"
+          placeholder="e.g., Dr. Smith"
+          [value]="instructor()"
+          (input)="instructor.set($any($event.target).value)"
         />
       </div>
 
       <div class="form-group">
-        <label for="endTime">End Time <span class="required">*</span></label>
+        <label for="sectionNumber">Section Number</label>
         <input
-          type="time"
-          id="endTime"
+          type="number"
+          id="sectionNumber"
           class="form-control"
-          [value]="endTime()"
-          (input)="endTime.set($any($event.target).value)"
+          placeholder="e.g., 001"
+          [value]="sectionNumber()"
+          (input)="sectionNumber.set($any($event.target).valueAsNumber)"
+          min="0"
+          step="1"
         />
+        <small>Optional</small>
       </div>
-    </div>
-
-    <div class="form-group">
-      <label>Repeat Days <span class="required">*</span></label>
-      <div class="days-selector">
-        @for (day of allDays; track day) {
-          <button
-            type="button"
-            class="day-btn"
-            [class.selected]="isDaySelected(day)"
-            (click)="toggleDay(day)"
-          >
-            {{ day.substring(0, 3) }}
-          </button>
-        }
-      </div>
-      <small>Select the days this course meets</small>
-    </div>
+    }
   </div>
 
   <div class="dialog-footer">
