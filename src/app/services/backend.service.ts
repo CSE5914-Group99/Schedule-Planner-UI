@@ -6,6 +6,7 @@ import { User } from '../models/user.model';
 import {
   Campus,
   Course,
+  Event,
   ModificationRequests,
   Schedule,
   ScheduleAlterations,
@@ -89,11 +90,20 @@ export class BackendService {
     return this.http.post<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course`, course);
   }
 
-  getCoursesFromUserInput(course: Course, campus: Campus, term: Term) {
-    const subject = course.courseId.replace(/[^A-Z]/gi, '').toUpperCase();
-    const number = course.courseId.replace(/[^0-9]/g, '');
-    return this.http.get<Course[]>(
-      `${this.base_url}/course-search?course_number=${number}&subject=${subject}&campus=${campus}&term=${term}`,
+  getCoursesFromUserInput(course: Course, campus: string, term: Term): Observable<any> {
+    let subject = course.courseId.replace(/[^A-Z]/gi, '').toUpperCase();
+    let number = course.courseId.replace(/[^0-9]/g, '');
+    
+    // Construct query parameters correctly
+    const params = new URLSearchParams({
+      subject: subject,
+      course_number: number,
+      campus: campus,
+      term: term
+    });
+
+    return this.http.get<any>(
+      `${this.base_url}/course-search?${params.toString()}`
     );
   }
 
@@ -124,6 +134,30 @@ export class BackendService {
     return this.http.post<ScheduleAlterations>(`${this.base_url}/courses/class-recommendations`, {
       schedule,
       modification_requests,
+    });
+  }
+
+  generateSchedules(
+    courses: Course[],
+    term: string,
+    campus: string,
+    events: Event[],
+    preferences: any = null
+  ): Observable<any> {
+    const payload = {
+      courses,
+      term,
+      campus,
+      events,
+      preferences
+    };
+    return this.http.post<any>(`${this.base_url}/generate-schedule/`, payload);
+  }
+
+  analyzeSchedules(schedules: Schedule[], preferences: any = null): Observable<Schedule[]> {
+    return this.http.post<Schedule[]>(`${this.base_url}/generate-schedule/analyze`, {
+      schedules,
+      preferences
     });
   }
 

@@ -36,16 +36,49 @@
     </div>
   }
 
+  <!-- Generated Schedule Tabs -->
+  @if (isGeneratedMode()) {
+    <div class="generated-tabs-container">
+      <div class="tabs-header">
+        <span class="tabs-label">Generated Options:</span>
+        <div class="tabs-list">
+          @for (sched of generatedSchedules(); track $index) {
+            <button 
+                class="tab-btn" 
+                [class.active]="selectedGeneratedIndex() === $index"
+                (click)="selectGeneratedSchedule($index)">
+                Option {{ $index + 1 }}
+                @if (sched.difficultyScore) {
+                    <span class="score-badge">{{ sched.difficultyScore | number:'1.1-1' }}</span>
+                }
+            </button>
+          }
+        </div>
+      </div>
+      <div class="tabs-actions">
+        <button class="btn discard-btn" (click)="discardGeneratedSchedule()">Discard</button>
+        <button class="btn secondary-btn" (click)="openAnalyzer()" [disabled]="analyzing()">
+          @if (analyzing()) {
+            📊 Analyzing...
+          } @else {
+            📊 Analyze
+          }
+        </button>
+        <button class="btn accept-btn" (click)="acceptGeneratedSchedule()">✓ Keep This Schedule</button>
+      </div>
+    </div>
+  }
+
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-section">
-      <button class="btn primary-btn" (click)="openCourseDialog()">+ Add Course</button>
-      <button class="btn secondary-btn" (click)="openEventDialog()">+ Add Event</button>
-      <button class="btn save-btn-toolbar" (click)="saveSchedule()" [disabled]="saving()">
-        @if (saving()) {
-          💾 Saving...
+      <button class="btn primary-btn" (click)="openCourseDialog()" [disabled]="isGeneratedMode()">+ Add Course</button>
+      <button class="btn secondary-btn" (click)="openEventDialog()" [disabled]="isGeneratedMode()">+ Add Event</button>
+      <button class="btn generate-btn" (click)="generateSchedule()" [disabled]="generating() || isGeneratedMode()">
+        @if (generating()) {
+          ✨ Generating...
         } @else {
-          💾 Save Schedule
+          ✨ Generate
         }
       </button>
     </div>
@@ -122,7 +155,6 @@
             @for (day of visibleDays(); track day) {
               <div class="calendar-cell slot-cell" (click)="onSlotClick(day, timeSlot)">
                 @for (item of getItemsInSlot(day, timeSlot); track item.id) {
-                  @if (item.startTime.startsWith(timeSlot.split(':')[0])) {
                     <div
                       class="schedule-item"
                       [class.course-item]="item.type === 'course'"
@@ -140,7 +172,14 @@
                       (click)="onItemClick(item, $event)"
                     >
                       <div class="item-content">
-                        <div class="item-title">{{ item.title }}</div>
+                        <div class="item-header">
+                            <span class="item-title">{{ item.title }}</span>
+                            @if (item.type === 'course' && getCourseDifficulty(item.id)) {
+                                <span class="difficulty-badge" [class]="getDifficultyClass(getCourseDifficulty(item.id)!)">
+                                    {{ getCourseDifficulty(item.id) }}
+                                </span>
+                            }
+                        </div>
                         @if (item.instructor) {
                           <div class="item-subtitle">{{ item.instructor }}</div>
                         }
@@ -150,25 +189,70 @@
                         <div class="item-time">{{ item.startTime }} - {{ item.endTime }}</div>
                       </div>
                     </div>
-                  }
                 }
               </div>
             }
           }
         </div>
       </div>
-      <!-- Sidebar for untimed courses -->
-      <aside class="calendar-sidebar" *ngIf="getUntimedCourses().length > 0">
-        <h3>Untimed Courses</h3>
-        <ul>
-          <li
-            *ngFor="let course of getUntimedCourses()"
-            class="untimed-course"
-            (click)="editCourse(course)"
-          >
-            <span class="course-courseId">{{ course.courseId }}</span>
-          </li>
-        </ul>
+      
+      <!-- Right Sidebar for Analysis & Untimed -->
+      <aside class="right-sidebar">
+        <!-- Analysis Panel -->
+        <div class="analysis-panel" *ngIf="showAnalyzer() || analyzing() || isGeneratedMode() || (schedule()?.difficultyScore && schedule()?.difficultyScore! > 0)">
+            <div class="panel-header">
+                <h3>Schedule Analysis</h3>
+                @if (analyzing()) {
+                    <span class="loading-spinner">⟳</span>
+                }
+            </div>
+            
+            @if (schedule()?.difficultyScore) {
+                <div class="score-cards">
+                    <div class="score-card main-score" [class]="getDifficultyClass(schedule()?.difficultyScore!)">
+                        <div class="score-value">{{ schedule()?.difficultyScore | number:'1.0-0' }}</div>
+                        <div class="score-label">Difficulty</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">{{ schedule()?.weeklyHours | number:'1.1-1' }}</div>
+                        <div class="score-label">Hours/Wk</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value">{{ schedule()?.creditHours }}</div>
+                        <div class="score-label">Credits</div>
+                    </div>
+                </div>
+
+                @if (schedule()?.gradingDetails?.summary) {
+                    <div class="analysis-summary">
+                        <h4>Summary</h4>
+                        <p>{{ schedule()?.gradingDetails?.summary }}</p>
+                    </div>
+                }
+            } @else if (analyzing()) {
+                <div class="analyzing-state">
+                    <p>Analyzing schedule difficulty and workload...</p>
+                </div>
+            } @else {
+                <div class="empty-state">
+                    <p>Click "Analyze" to see difficulty scores.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Untimed Courses -->
+        <div class="untimed-courses" *ngIf="getUntimedCourses().length > 0">
+          <h3>Untimed Courses</h3>
+          <ul>
+            <li
+              *ngFor="let course of getUntimedCourses()"
+              class="untimed-course"
+              (click)="editCourse(course)"
+            >
+              <span class="course-courseId">{{ course.courseId }}</span>
+            </li>
+          </ul>
+        </div>
       </aside>
     </div>
   }

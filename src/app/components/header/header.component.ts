@@ -44,13 +44,15 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   currentUser: User = { google_uid: '' };
 
   ngAfterViewInit() {
-    setTimeout(() => {
-      const header = document.querySelector('.header');
-      if (header) {
-        const height = header.getBoundingClientRect().height;
-        document.documentElement.style.setProperty('--header-height', `${height}px`);
-      }
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        const header = document.querySelector('.header');
+        if (header) {
+          const height = header.getBoundingClientRect().height;
+          document.documentElement.style.setProperty('--header-height', `${height}px`);
+        }
+      });
+    }
   }
 
   async ngOnInit() {

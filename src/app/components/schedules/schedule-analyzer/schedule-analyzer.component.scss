@@ -1,0 +1,198 @@
+.analyzer-container {
+  padding: 1.5rem;
+  background: white;
+  border-radius: 1rem;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  .analyzer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+      padding: 0.5rem;
+      line-height: 1;
+      border-radius: 0.375rem;
+
+      &:hover {
+        background: #f3f4f6;
+        color: #374151;
+      }
+    }
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    .metric-card {
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+      }
+
+      .metric-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+
+      &.difficulty {
+        &.low {
+          background: #ecfdf5;
+          border-color: #a7f3d0;
+          .metric-value { color: #059669; }
+        }
+        &.medium {
+          background: #fffbeb;
+          border-color: #fde68a;
+          .metric-value { color: #d97706; }
+        }
+        &.high {
+          background: #fef2f2;
+          border-color: #fecaca;
+          .metric-value { color: #dc2626; }
+        }
+      }
+    }
+  }
+
+  .courses-analysis {
+    margin-bottom: 2rem;
+
+    h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 1rem;
+    }
+
+    .course-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .course-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      background: #fff;
+
+      .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+
+        .course-id {
+          font-weight: 700;
+          color: #111827;
+        }
+
+        .course-rating {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #059669; // Default low
+
+          &.medium { color: #d97706; }
+          &.high { color: #dc2626; }
+        }
+      }
+
+      .course-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+
+        .detail-row {
+          display: flex;
+          gap: 0.5rem;
+
+          .label {
+            color: #6b7280;
+          }
+          .value {
+            color: #374151;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .rating-bar-container {
+        height: 6px;
+        background: #f3f4f6;
+        border-radius: 3px;
+        overflow: hidden;
+
+        .rating-bar {
+          height: 100%;
+          background: linear-gradient(90deg, #3b82f6, #2563eb);
+          border-radius: 3px;
+        }
+      }
+    }
+  }
+
+  .analyzer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+
+      &.secondary-btn {
+        background: white;
+        border: 1px solid #d1d5db;
+        color: #374151;
+
+        &:hover {
+          background: #f9fafb;
+        }
+      }
+
+      &.primary-btn {
+        background: #3b82f6;
+        color: white;
+
+        &:hover {
+          background: #2563eb;
+        }
+      }
+    }
+  }
+}
