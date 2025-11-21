@@ -1,8 +1,9 @@
-import { Component, input, output, OnInit, signal } from '@angular/core';
+import { Component, input, output, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Course, DayOfWeek } from '../../models/schedule.model';
+import { Campus, Course, DayOfWeek, Term } from '../../models/schedule.model';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { BackendService } from '../../services/backend.service';
 
 @Component({
   selector: 'app-course-dialog',
@@ -13,9 +14,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 })
 export class CourseDialogComponent implements OnInit {
   course = input<Course | null>(null);
+  campus = input<Campus | null>(null);
+  term = input<Term | null>(null);
   save = output<Course>();
   delete = output<string>();
   cancel = output<void>();
+  backendService = inject(BackendService);
 
   // Form state
   instructor = signal('');
@@ -62,6 +66,8 @@ export class CourseDialogComponent implements OnInit {
       instructor: this.instructor().trim() || undefined,
       session: this.sectionNumber().valueOf() || undefined,
     };
+
+    // this.backendService.getCoursesFromUserInput(course, campus)
 
     this.save.emit(course);
   }

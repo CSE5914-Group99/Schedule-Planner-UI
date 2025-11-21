@@ -162,6 +162,7 @@ export class ScheduleService {
       );
     } else {
       // Create new schedule
+      console.log('trying to create schedule', user);
       return this.backend.addSchedule(user.google_uid, schedule).pipe(
         tap((response) => {
           console.log('Schedule created:', response);
@@ -247,7 +248,7 @@ export class ScheduleService {
   // Load all schedules from backend
   refreshSchedules(): void {
     const user = this.authService.getUser();
-    if (!user) {
+    if (!user || user.google_uid === '') {
       console.error('No user logged in, cannot refresh schedules');
       return;
     }

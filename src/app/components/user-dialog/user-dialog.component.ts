@@ -30,7 +30,11 @@ export class UserDialogComponent {
 
   save(): void {
     if (this.userForm.valid) {
-      this.dialogRef.close(this.userForm.value);
+      let user = this.data.user;
+      user.first_name = this.userForm.value.first_name;
+      user.last_name = this.userForm.value.last_name;
+      user.preferences = this.userForm.value.preferences;
+      this.dialogRef.close(user);
     }
   }
 

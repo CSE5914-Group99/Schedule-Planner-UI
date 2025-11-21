@@ -48,17 +48,19 @@ export class LandingComponent implements OnInit {
 
   constructor() {
     this.user = this.auth.getUser();
-    this.backend.getFavoriteSchedule(this.user.google_uid).subscribe({
-      next: (s: Schedule) => {
-        console.log('Favorite schedule loaded:', s);
-        this.schedule = s;
-        console.log(this.schedule);
-      },
-      error: (err) => {
-        console.error('Error loading favorite schedule:', err);
-      },
-    });
-    this.cdRef.markForCheck();
+    if (this.user.google_uid != '') {
+      this.backend.getFavoriteSchedule(this.user.google_uid).subscribe({
+        next: (s: Schedule) => {
+          console.log('Favorite schedule loaded:', s);
+          this.schedule = s;
+          console.log(this.schedule);
+        },
+        error: (err) => {
+          console.error('Error loading favorite schedule:', err);
+        },
+      });
+      this.cdRef.markForCheck();
+    }
     // Use effect to react to favorite schedule changes
     effect(() => {
       const favorite = this.favoriteSchedule();

@@ -11,6 +11,8 @@ export type Campus = 'Columbus' | 'Lima' | 'Mansfield' | 'Marion' | 'Newark' | '
 
 export type Term = 'Summer 2025' | 'Autumn 2025' | 'Spring 2026';
 
+export type Status = 'open' | 'close';
+
 export interface Course {
   courseId: string; // e.g., "CSE2331"
   id?: string;
@@ -35,6 +37,7 @@ export interface Event {
   endTime: string; // HH:mm format
   term?: Term; // e.g., "Fall 2023"
   campus?: Campus; // e.g., "Main", "Lima"
+  status?: Status;
   repeatDays: DayOfWeek[]; // Days this event repeats
 }
 

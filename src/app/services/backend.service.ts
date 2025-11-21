@@ -4,10 +4,12 @@ import { Observable } from 'rxjs';
 import { environment } from '../environment';
 import { User } from '../models/user.model';
 import {
+  Campus,
   Course,
   ModificationRequests,
   Schedule,
   ScheduleAlterations,
+  Term,
 } from '../models/schedule.model';
 
 @Injectable({
@@ -56,6 +58,7 @@ export class BackendService {
   }
 
   addSchedule(userId: string, payload: Schedule): Observable<Schedule> {
+    console.log('userID', userId);
     return this.http.post<Schedule>(`${this.base_url}/schedule/add/${userId}`, payload);
   }
 
@@ -84,6 +87,14 @@ export class BackendService {
   //I think these are unused too?
   addCourseToSchedule(userId: string, scheduleId: number, course: Course): Observable<any> {
     return this.http.post<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course`, course);
+  }
+
+  getCoursesFromUserInput(course: Course, campus: string, term: Term) {
+    let subject = course.courseId.replace(/[^A-Z]/gi, '').toUpperCase();
+    let number = course.courseId.replace(/[^0-9]/g, '');
+    return this.http.get<Course[]>(
+      `${this.base_url}/course-search?couse_number=${number}?subject=${subject}?campus=${campus}?term=${term}`,
+    );
   }
 
   //I think these are unused too?

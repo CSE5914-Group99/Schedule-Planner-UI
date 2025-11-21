@@ -7,6 +7,8 @@ import { AuthService } from '../../services/auth.service';
 import { Course, Event, DayOfWeek, ScheduleItem, Term, Campus } from '../../models/schedule.model';
 import { CourseDialogComponent } from './course-dialog.component';
 import { EventDialogComponent } from './event-dialog.component';
+import { BackendService } from '../../services/backend.service';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-schedule-builder',
@@ -18,6 +20,7 @@ import { EventDialogComponent } from './event-dialog.component';
 export class ScheduleBuilderComponent implements OnInit {
   private scheduleService = inject(ScheduleService);
   private authService = inject(AuthService);
+  private backendService = inject(BackendService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -310,18 +313,24 @@ export class ScheduleBuilderComponent implements OnInit {
     // Manually set campus and term before saving
     sched.campus = this.selectedCampus();
     sched.term = this.selectedTerm();
+    //also delete the id
     for (const course of sched.courses) {
       course.campus = this.selectedCampus();
       course.term = this.selectedTerm();
+      delete course.id;
     }
     for (const event of sched.events) {
       event.campus = this.selectedCampus();
       event.term = this.selectedTerm();
+      delete event.id;
     }
 
-    console.log('Final schedule data to save:', sched);
+    sched.createdAt = new Date().toDateString();
+    sched.updatedAt = new Date().toDateString();
 
-    this.scheduleService.saveCurrentSchedule().subscribe({
+    console.log('Final schedule data to save:', sched);
+    let user: User = this.authService.getUser();
+    this.backendService.addSchedule(user.google_uid, sched).subscribe({
       next: () => {
         this.saving.set(false);
         this.showSuccessMessage.set(true);
@@ -337,6 +346,23 @@ export class ScheduleBuilderComponent implements OnInit {
         console.error('Save error:', err);
       },
     });
+
+    // this.scheduleService.saveCurrentSchedule().subscribe({
+    //   next: () => {
+    //     this.saving.set(false);
+    //     this.showSuccessMessage.set(true);
+
+    //     // Hide success message after 3 seconds
+    //     setTimeout(() => {
+    //       this.showSuccessMessage.set(false);
+    //     }, 3000);
+    //   },
+    //   error: (err) => {
+    //     this.saving.set(false);
+    //     this.errorMessage.set('Failed to save schedule. Please try again.');
+    //     console.error('Save error:', err);
+    //   },
+    // });
   }
 
   goBack() {

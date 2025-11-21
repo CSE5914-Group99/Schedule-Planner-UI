@@ -44,22 +44,23 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   currentUser: User = { google_uid: '' };
 
   ngAfterViewInit() {
-    if (isPlatformBrowser(this.platformId)) {
+    setTimeout(() => {
       const header = document.querySelector('.header');
       if (header) {
         const height = header.getBoundingClientRect().height;
         document.documentElement.style.setProperty('--header-height', `${height}px`);
       }
-    }
+    });
   }
 
   async ngOnInit() {
     const user = await firstValueFrom(authState(this.auth));
     if (user) {
-      const savedUser = await firstValueFrom(this.saveUserToService(user));
-      this.currentUser = savedUser;
-      this.signedIn = true;
-      this.cdRef.detectChanges();
+      const savedUser = this.authService.getUser();
+      setTimeout(() => {
+        this.signedIn = true;
+        this.currentUser = savedUser;
+      });
     }
   }
 
@@ -76,13 +77,9 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     signInWithPopup(this.auth, new GoogleAuthProvider())
       .then((result) => {
         this.saveUserToService(result.user);
-
-        this.cdRef.detectChanges();
         this.router.navigate(['/landing']);
       })
-      .catch((error) => {
-        console.error('Google sign-in failed:', error);
-      });
+      .catch((error) => console.error('Google sign-in failed:', error));
   }
 
   saveUserToService(user: any) {
@@ -92,14 +89,14 @@ export class HeaderComponent implements OnInit, AfterViewInit {
       email: user?.email,
     };
     this.authService.setUser(this.currentUser);
-
-    if (this.authService.checkIfExists()) {
-      console.log('User exists in backend');
-      return this.backendService.getUserByGoogleUid(user.uid); // returns Observable<User>
-    } else {
-      console.log('User does not exist in backend, creating user');
-      return this.backendService.createUser(this.currentUser); // returns Observable<User>
-    }
+    this.authService.checkIfExists();
+    // if (this.authService.checkIfExists()) {
+    //   console.log('User exists in backend');
+    //   return this.backendService.getUserByGoogleUid(user.uid); // returns Observable<User>
+    // } else {
+    //   console.log('User does not exist in backend, creating user');
+    //   return this.backendService.createUser(this.currentUser); // returns Observable<User>
+    // }
   }
 
   signOut() {
