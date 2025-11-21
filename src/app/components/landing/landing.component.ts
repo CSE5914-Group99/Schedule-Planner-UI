@@ -51,20 +51,7 @@ export class LandingComponent implements OnInit {
 
   constructor() {
     this.user = this.auth.getUser();
-    if (this.user.google_uid != '') {
-      this.backend.getFavoriteSchedule(this.user.google_uid).subscribe({
-        next: (s: Schedule) => {
-          console.log('Favorite schedule loaded:', s);
-          this.schedule = s;
-          this.mapScheduleToItems(s);
-          console.log(this.schedule);
-        },
-        error: (err) => {
-          console.error('Error loading favorite schedule:', err);
-        },
-      });
-      this.cdRef.markForCheck();
-    }
+    
     // Use effect to react to favorite schedule changes
     effect(() => {
       const favorite = this.favoriteSchedule();
@@ -76,7 +63,19 @@ export class LandingComponent implements OnInit {
         console.log('No favorite schedule found');
         this.upcoming = [];
         this.allItems = [];
+        // Reset schedule to empty/default
+        this.schedule = {
+          id: 0,
+          name: 'New Schedule',
+          favorite: false,
+          courses: [],
+          events: [],
+          difficultyScore: 0,
+          createdAt: '',
+          updatedAt: '',
+        };
       }
+      this.cdRef.markForCheck();
     });
   }
 

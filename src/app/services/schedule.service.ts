@@ -153,7 +153,7 @@ export class ScheduleService {
         ...payload,
         scheduleId: schedule.id,
       };
-      return this.backend.saveSchedule(user.google_uid, schedule).pipe(
+      return this.backend.saveSchedule(user.google_uid, updatePayload as any).pipe(
         tap((response) => {
           console.log('Schedule updated:', response);
           this.hasUnsavedChanges.set(false);
@@ -231,7 +231,7 @@ export class ScheduleService {
     console.log('Sending payload to backend:', updatePayload);
 
     // Update the schedule with favorite flag using saveSchedule endpoint
-    return this.backend.saveSchedule(user.google_uid, schedule).pipe(
+    return this.backend.saveSchedule(user.google_uid, updatePayload as any).pipe(
       tap((response) => {
         console.log('Backend response:', response);
         // Update local state: unfavorite all others and favorite this one
