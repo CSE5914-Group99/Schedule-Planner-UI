@@ -25,12 +25,9 @@ export class FooterComponent implements AfterViewInit {
     this.router.navigate(['/landing']);
   }
   savedSchedulesClicked() {
-    console.log('Saved Schedules button clicked');
+    this.router.navigate(['/schedules']);
   }
-  addClassClicked() {
-    console.log('Add Class button clicked');
-  }
-  addEventClicked() {
-    console.log('Add Event button clicked');
+  addScheduleClicked() {
+    this.router.navigate(['/schedule/new']);
   }
 }

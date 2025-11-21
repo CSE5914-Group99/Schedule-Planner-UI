@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { User } from '../models/user.model';
 import { BackendService } from './backend.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -6,12 +7,29 @@ import { UserDialogComponent } from '../components/user-dialog/user-dialog.compo
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private currentUser: User = { id: 0 };
+  private currentUser: User = { google_uid: '' };
   private readonly backendService = inject(BackendService);
   private readonly dialog = inject(MatDialog);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          this.currentUser = JSON.parse(stored);
+        } catch (e) {
+          console.error('Failed to parse stored user', e);
+        }
+      }
+    }
+  }
 
   setUser(user: User) {
     this.currentUser = user;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
   }
 
   getUser(): User {
@@ -19,6 +37,10 @@ export class AuthService {
   }
 
   checkIfExists(): boolean {
+    if (this.currentUser.google_uid === '') {
+      console.log('No Google UID found for current user.');
+      return false;
+    }
     const response = this.backendService.getUserByGoogleUid(this.currentUser.google_uid || '');
     response.subscribe({
       next: (user: User) => {
@@ -27,7 +49,7 @@ export class AuthService {
         return true;
       },
       error: () => {
-        return false;
+        this.currentUser = this.createUser(this.currentUser);
       },
     });
     return false;

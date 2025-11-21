@@ -7,15 +7,28 @@ export type DayOfWeek =
   | 'Saturday'
   | 'Sunday';
 
+export type Campus = 'Columbus' | 'Lima' | 'Mansfield' | 'Marion' | 'Newark' | 'Wooster';
+
+export type Term = 'Summer 2025' | 'Autumn 2025' | 'Spring 2026';
+
+export type Status = 'open' | 'close';
+
 export interface Course {
-  id?: string;
-  title: string;
   courseId: string; // e.g., "CSE2331"
+  id?: string;
+  title?: string;
   instructor?: string;
-  startTime: string; // HH:mm format
-  endTime: string; // HH:mm format
-  repeatDays: DayOfWeek[]; // Days this course repeats
-  color?: string;
+  startTime?: string; // HH:mm format
+  endTime?: string; // HH:mm format
+  type?: string; // e.g., "Lecture", "Lab", "Recitation"
+  difficultyRating?: number;
+  mode?: string; // e.g., "In-person", "Online", "Hybrid"
+  session?: number; // e.g., 1, 2, 3 for different sections
+  term?: Term; // e.g., "Fall 2023"
+  campus?: Campus; // e.g., "Main", "Lima"
+  repeatDays?: DayOfWeek[]; // Days this course repeats
+  status?: string; // e.g. "Open", "Waitlist"
+  ratingDetails?: any; // Detailed grading analysis
 }
 
 export interface Event {
@@ -24,8 +37,10 @@ export interface Event {
   description?: string;
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
+  term?: Term; // e.g., "Fall 2023"
+  campus?: Campus; // e.g., "Main", "Lima"
+  status?: Status;
   repeatDays: DayOfWeek[]; // Days this event repeats
-  color?: string;
 }
 
 export interface Schedule {
@@ -34,12 +49,18 @@ export interface Schedule {
   favorite: boolean;
   courses: Course[];
   events: Event[];
-  difficultyScore?: number | null;
+  difficultyScore?: number;
+  weeklyHours?: number;
+  creditHours?: number;
+  term?: Term; // e.g., "Fall 2023"
+  campus?: Campus; // e.g., "Main", "Lima"
   createdAt?: string;
   updatedAt?: string;
+  gradingDetails?: any; // Detailed grading analysis
 }
 
 // Backend API payload format for creating/updating schedules
+// Try to avoid
 export interface SchedulePayload {
   scheduleId?: number; // Only for updates
   name: string;
@@ -48,6 +69,7 @@ export interface SchedulePayload {
   activities: EventPayload[];
 }
 
+// Try to avoid
 export interface CoursePayload {
   courseId: string;
   sectionId?: string | null;
@@ -55,12 +77,14 @@ export interface CoursePayload {
   teacherName?: string;
 }
 
+// Try to avoid
 export interface EventPayload {
   description: string;
   timesDays: string; // Format: "Tuesday, Thursday 14:00-15:00"
 }
 
 // Schedule item for internal use (unified type for display)
+// Try to avoid
 export interface ScheduleItem {
   id: string;
   title: string;

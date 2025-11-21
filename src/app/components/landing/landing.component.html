@@ -5,13 +5,24 @@
   <section class="card">
     <h3>Upcoming (next 5)</h3>
     <div *ngIf="!upcoming.length" class="muted">No upcoming items.</div>
-    <ul class="upcoming">
-      <li *ngFor="let u of upcoming">
-        <strong>[{{ u.type }}]</strong>
-        {{ u.title }} — {{ u.date }} {{ u.start }}–{{ u.end }}
-        <span *ngIf="u.location"> &#64; {{ u.location }}</span>
-      </li>
-    </ul>
+    <div class="upcoming-list" *ngIf="upcoming.length">
+      <div class="upcoming-item" *ngFor="let u of upcoming">
+        <div class="upcoming-time">
+          <div class="day">{{ u.date }}</div>
+          <div class="time">{{ u.start }} - {{ u.end }}</div>
+        </div>
+        <div class="upcoming-details">
+          <div class="upcoming-title">
+            <span class="tag" [class.event]="u.type === 'event'">{{ u.type }}</span>
+            {{ u.title }}
+          </div>
+          <div class="upcoming-meta" *ngIf="u.location || u.instructor">
+            <span *ngIf="u.instructor">👤 {{ u.instructor }}</span>
+            <span *ngIf="u.location">📍 {{ u.location }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <div class="layout">

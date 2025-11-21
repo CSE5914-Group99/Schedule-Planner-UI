@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>Choose a Section for {{ course.subject }} {{ course.course_number }}</h2>
+
+<mat-dialog-content>
+  <div *ngFor="let section of course.sections | slice: 0 : 4">
+    <mat-card class="section-card">
+      <mat-card-title>{{ section.title }}</mat-card-title>
+      <mat-card-subtitle> Instructor: {{ section.instructor }} </mat-card-subtitle>
+      <p>
+        {{ section.startTime }} - {{ section.endTime }}<br />
+        Days: {{ section.repeatDays.join(', ') }}
+      </p>
+      <button mat-raised-button color="primary" (click)="choose(section)">Select</button>
+    </mat-card>
+  </div>
+</mat-dialog-content>

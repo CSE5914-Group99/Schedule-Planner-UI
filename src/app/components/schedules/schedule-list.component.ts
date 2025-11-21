@@ -28,7 +28,7 @@ export class ScheduleListComponent implements OnInit {
 
   loadSchedules() {
     const user = this.authService.getUser();
-    if (!user) {
+    if (!user || !user.google_uid) {
       this.router.navigate(['/login']);
       return;
     }

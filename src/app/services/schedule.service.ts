@@ -63,10 +63,7 @@ export class ScheduleService {
     if (!current) return;
 
     course.id = this.generateId();
-    // Assign color if not provided
-    if (!course.color) {
-      course.color = this.generateColor('course', current.courses.length);
-    }
+
     current.courses.push(course);
     this.currentSchedule.set({ ...current });
     this.hasUnsavedChanges.set(true);
@@ -101,10 +98,6 @@ export class ScheduleService {
     if (!current) return;
 
     event.id = this.generateId();
-    // Assign color if not provided
-    if (!event.color) {
-      event.color = this.generateColor('event', current.events.length);
-    }
     current.events.push(event);
     this.currentSchedule.set({ ...current });
     this.hasUnsavedChanges.set(true);
@@ -160,7 +153,7 @@ export class ScheduleService {
         ...payload,
         scheduleId: schedule.id,
       };
-      return this.backend.saveSchedule(user.id, updatePayload).pipe(
+      return this.backend.saveSchedule(user.google_uid, updatePayload as any).pipe(
         tap((response) => {
           console.log('Schedule updated:', response);
           this.hasUnsavedChanges.set(false);
@@ -169,11 +162,12 @@ export class ScheduleService {
       );
     } else {
       // Create new schedule
-      return this.backend.addSchedule(user.id, payload).pipe(
+      console.log('trying to create schedule', user);
+      return this.backend.addSchedule(user.google_uid, schedule).pipe(
         tap((response) => {
           console.log('Schedule created:', response);
-          if (response.id || response.scheduleId) {
-            schedule.id = response.id || response.scheduleId;
+          if (response.id) {
+            schedule.id = response.id;
             this.currentSchedule.set({ ...schedule });
           }
           this.hasUnsavedChanges.set(false);
@@ -190,7 +184,7 @@ export class ScheduleService {
       throw new Error('No user logged in');
     }
 
-    return this.backend.deleteSchedule(user.id, scheduleId).pipe(
+    return this.backend.deleteSchedule(user.google_uid, scheduleId).pipe(
       tap(() => {
         this.schedules.set(this.schedules().filter((s) => s.id !== scheduleId));
 
@@ -211,7 +205,7 @@ export class ScheduleService {
       throw new Error('No user logged in');
     }
 
-    console.log('Setting favorite for schedule ID:', scheduleId, 'User ID:', user.id);
+    console.log('Setting favorite for schedule ID:', scheduleId, 'User ID:', user.google_uid);
     console.log('Current schedules:', this.schedules());
 
     // First, get the schedule to update
@@ -237,7 +231,7 @@ export class ScheduleService {
     console.log('Sending payload to backend:', updatePayload);
 
     // Update the schedule with favorite flag using saveSchedule endpoint
-    return this.backend.saveSchedule(user.id, updatePayload).pipe(
+    return this.backend.saveSchedule(user.google_uid, updatePayload as any).pipe(
       tap((response) => {
         console.log('Backend response:', response);
         // Update local state: unfavorite all others and favorite this one
@@ -254,14 +248,14 @@ export class ScheduleService {
   // Load all schedules from backend
   refreshSchedules(): void {
     const user = this.authService.getUser();
-    if (!user) {
+    if (!user || user.google_uid === '') {
       console.error('No user logged in, cannot refresh schedules');
       return;
     }
 
-    console.log('Refreshing schedules for user:', user.id);
+    console.log('Refreshing schedules for user:', user.google_uid);
 
-    this.backend.getSchedules(user.id).subscribe({
+    this.backend.getSchedules(user.google_uid).subscribe({
       next: (data: any[]) => {
         console.log('Received schedules from backend:', data);
         const schedules = data.map((item) => this.backendToSchedule(item));
@@ -277,28 +271,38 @@ export class ScheduleService {
 
   // Helper: Convert Schedule to backend payload
   private scheduleToPayload(schedule: Schedule): SchedulePayload {
-    const items: CoursePayload[] = schedule.courses.map((course) => ({
-      courseId: course.courseId,
-      sectionId: null,
-      timesDays: this.formatTimesDays(course.repeatDays, course.startTime, course.endTime),
-      teacherName: course.instructor,
-    }));
+    // Send full objects to match new backend schema
+    // The backend accepts 'courses' and 'events' lists directly
 
-    const activities: EventPayload[] = schedule.events.map((event) => ({
-      description: event.title,
-      timesDays: this.formatTimesDays(event.repeatDays, event.startTime, event.endTime),
-    }));
+    // We still populate items/activities for legacy support if needed,
+    // but we should primarily rely on the new fields if the backend supports them.
+    // Based on backend code, it looks for 'courses' and 'events' in SchedulePayload.
 
-    return {
+    // However, the frontend SchedulePayload interface might need updating or we just cast it.
+    // Let's construct a payload that satisfies the backend.
+
+    const payload: any = {
       name: schedule.name,
-      favorite: schedule.favorite, // Backend API expects 'favorite'
-      items,
-      activities,
+      favorite: schedule.favorite,
+      campus: schedule.campus,
+      semester: schedule.term, // Map term to semester
+      courses: schedule.courses,
+      events: schedule.events,
+      gradingDetails: (schedule as any).gradingDetails, // Pass through if exists
+      difficultyScore: schedule.difficultyScore,
+      weeklyHours: schedule.weeklyHours,
+      creditHours: schedule.creditHours,
     };
+
+    return payload;
   }
 
   // Helper: Format repeatDays and times for backend
-  private formatTimesDays(days: DayOfWeek[], startTime: string, endTime: string): string {
+  private formatTimesDays(
+    days: DayOfWeek[] | undefined = [],
+    startTime: string | undefined = '08:00',
+    endTime: string | undefined = '09:00',
+  ): string {
     if (!days.length) return `${startTime}-${endTime}`;
     return `${days.join(', ')} ${startTime}-${endTime}`;
   }
@@ -307,32 +311,54 @@ export class ScheduleService {
   private backendToSchedule(data: any): Schedule {
     console.log('Converting backend data to schedule:', data);
 
-    const courses: Course[] = (data.items || []).map((item: any, index: number) => {
-      const parsed = this.parseTimesDays(item.timesDays || item.times_days || '');
-      return {
-        id: `course-${data.scheduleId || data.id}-${index}`,
-        title: item.courseId || 'Untitled Course',
-        courseId: item.courseId || '',
-        instructor: item.teacherName || item.teacher_name,
-        startTime: parsed.startTime,
-        endTime: parsed.endTime,
-        repeatDays: parsed.repeatDays,
+    let courses: Course[] = [];
+    if (data.courses && Array.isArray(data.courses)) {
+      // New format: direct mapping
+      courses = data.courses.map((c: any, index: number) => ({
+        ...c,
+        id: c.id || `course-${data.scheduleId || data.id}-${index}`,
         color: this.generateColor('course', index),
-      };
-    });
+      }));
+    } else {
+      // Legacy format: map from items
+      courses = (data.items || []).map((item: any, index: number) => {
+        const parsed = this.parseTimesDays(item.timesDays || item.times_days || '');
+        return {
+          id: `course-${data.scheduleId || data.id}-${index}`,
+          title: item.courseId || 'Untitled Course',
+          courseId: item.courseId || '',
+          instructor: item.teacherName || item.teacher_name,
+          startTime: parsed.startTime,
+          endTime: parsed.endTime,
+          repeatDays: parsed.repeatDays,
+          color: this.generateColor('course', index),
+        };
+      });
+    }
 
-    const events: Event[] = (data.activities || []).map((activity: any, index: number) => {
-      const parsed = this.parseTimesDays(activity.timesDays || activity.times_days || '');
-      return {
-        id: `event-${data.scheduleId || data.id}-${index}`,
-        title: activity.description || 'Untitled Event',
-        description: activity.description,
-        startTime: parsed.startTime,
-        endTime: parsed.endTime,
-        repeatDays: parsed.repeatDays,
+    let events: Event[] = [];
+    if (data.events && Array.isArray(data.events)) {
+      // New format: direct mapping
+      events = data.events.map((e: any, index: number) => ({
+        ...e,
+        id: e.id || `event-${data.scheduleId || data.id}-${index}`,
         color: this.generateColor('event', index),
-      };
-    });
+      }));
+    } else {
+      // Legacy format: map from activities
+      events = (data.activities || []).map((activity: any, index: number) => {
+        const parsed = this.parseTimesDays(activity.timesDays || activity.times_days || '');
+        return {
+          id: `event-${data.scheduleId || data.id}-${index}`,
+          title: activity.description || 'Untitled Event',
+          description: activity.description,
+          startTime: parsed.startTime,
+          endTime: parsed.endTime,
+          repeatDays: parsed.repeatDays,
+          color: this.generateColor('event', index),
+        };
+      });
+    }
 
     const schedule: Schedule = {
       id: data.scheduleId || data.id, // Backend uses scheduleId
@@ -340,10 +366,25 @@ export class ScheduleService {
       favorite: data.is_starred || data.favorite || false, // Backend uses is_starred
       courses,
       events,
-      //: data.difficultyScore || data.difficulty_score,
+      difficultyScore: data.difficultyScore ?? data.difficulty_score,
+      weeklyHours: data.weeklyHours ?? data.weekly_hours,
+      creditHours: data.creditHours ?? data.credit_hours ?? data.total_credit_hours,
       createdAt: data.createdAt || data.created_at,
       updatedAt: data.updatedAt || data.updated_at,
     };
+
+    // Map grading details if present
+    if (data.gradingDetails || data.grading_details) {
+      (schedule as any).gradingDetails = data.gradingDetails || data.grading_details;
+
+      // Fallback if top-level properties were missing but exist in details
+      if (schedule.difficultyScore == null) {
+        schedule.difficultyScore = (schedule as any).gradingDetails.adjusted_difficulty;
+      }
+      if (schedule.weeklyHours == null) {
+        schedule.weeklyHours = (schedule as any).gradingDetails.time_load;
+      }
+    }
 
     console.log('Converted schedule:', schedule);
     return schedule;

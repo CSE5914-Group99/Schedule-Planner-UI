@@ -41,25 +41,28 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   platformId: object = inject(PLATFORM_ID);
 
   signedIn: boolean = false;
-  currentUser: User = { id: 0 };
+  currentUser: User = { google_uid: '' };
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
-      const header = document.querySelector('.header');
-      if (header) {
-        const height = header.getBoundingClientRect().height;
-        document.documentElement.style.setProperty('--header-height', `${height}px`);
-      }
+      setTimeout(() => {
+        const header = document.querySelector('.header');
+        if (header) {
+          const height = header.getBoundingClientRect().height;
+          document.documentElement.style.setProperty('--header-height', `${height}px`);
+        }
+      });
     }
   }
 
   async ngOnInit() {
     const user = await firstValueFrom(authState(this.auth));
     if (user) {
-      const savedUser = await firstValueFrom(this.saveUserToService(user));
-      this.currentUser = savedUser;
-      this.signedIn = true;
-      this.cdRef.detectChanges();
+      const savedUser = this.authService.getUser();
+      setTimeout(() => {
+        this.signedIn = true;
+        this.currentUser = savedUser;
+      });
     }
   }
 
@@ -76,59 +79,53 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     signInWithPopup(this.auth, new GoogleAuthProvider())
       .then((result) => {
         this.saveUserToService(result.user);
-
-        this.cdRef.detectChanges();
         this.router.navigate(['/landing']);
       })
-      .catch((error) => {
-        console.error('Google sign-in failed:', error);
-      });
+      .catch((error) => console.error('Google sign-in failed:', error));
   }
 
   saveUserToService(user: any) {
     this.signedIn = !!user;
     this.currentUser = {
-      id: 0,
       google_uid: user?.uid,
       email: user?.email,
-      username: user?.displayName,
     };
     this.authService.setUser(this.currentUser);
-
-    if (this.authService.checkIfExists()) {
-      console.log('User exists in backend');
-      return this.backendService.getUserByGoogleUid(user.uid); // returns Observable<User>
-    } else {
-      console.log('User does not exist in backend, creating user');
-      return this.backendService.createUser(this.currentUser); // returns Observable<User>
-    }
+    this.authService.checkIfExists();
+    // if (this.authService.checkIfExists()) {
+    //   console.log('User exists in backend');
+    //   return this.backendService.getUserByGoogleUid(user.uid); // returns Observable<User>
+    // } else {
+    //   console.log('User does not exist in backend, creating user');
+    //   return this.backendService.createUser(this.currentUser); // returns Observable<User>
+    // }
   }
 
   signOut() {
     console.log('Sign out button clicked');
-    this.authService.setUser({ id: 0 });
+    this.authService.setUser({ google_uid: '' });
     this.signedIn = false;
-    this.currentUser = { id: 0 };
+    this.currentUser = { google_uid: '' };
     this.auth.signOut().then(() => {
       this.router.navigate(['/landing']);
     });
   }
 
   viewProfile() {
-    if (!this.signedIn || !this.currentUser.id) {
+    if (!this.signedIn || !this.currentUser.google_uid) {
       console.warn('User not ready yet');
       return;
     }
 
     this.dialogRef
       .open(UserDialogComponent, {
-        data: { mode: 'edit', user: this.currentUser },
+        data: { mode: 'edit', user: this.authService.getUser() },
         backdropClass: 'backdrop',
       })
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this.backendService.updateUser(this.currentUser.id, result).subscribe({
+          this.backendService.updateUser(this.currentUser.google_uid || '', result).subscribe({
             next: (updatedUser: User) => {
               this.currentUser = updatedUser;
               this.authService.setUser(this.currentUser);
@@ -141,11 +138,11 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   deleteAccount() {
     let user: User = this.authService.getUser();
-    this.backendService.deleteUserById(user.id?.toString() || '').subscribe({
+    this.backendService.deleteUserById(user.google_uid || '').subscribe({
       next: () => {
-        this.authService.setUser({ id: 0 });
+        this.authService.setUser({ google_uid: '' });
         this.signedIn = false;
-        this.currentUser = { id: 0 };
+        this.currentUser = { google_uid: '' };
         this.auth.signOut().then(() => {
           this.router.navigate(['/landing']);
         });

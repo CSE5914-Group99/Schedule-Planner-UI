@@ -1,5 +1,4 @@
 .landing {
-  padding-top: var(--header-height);
   padding-bottom: var(--footer-height);
   overflow-y: auto;
   padding-left: 40px;
@@ -343,10 +342,17 @@
 
 .list .row {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
   align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid #f3f4f6;
+  min-width: 100px;
+  text-align: center;
+  border-right: 1px solid #eee;
+  padding-right: 16px;
+}
+
+.upcoming-time .day {
+  font-weight: 600;
+  color: #374151;
 }
 
 .row .grow {
@@ -354,11 +360,18 @@
 }
 
 .tag {
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
-  background: #f3f4f6;
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.tag.event {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 .form-grid {
