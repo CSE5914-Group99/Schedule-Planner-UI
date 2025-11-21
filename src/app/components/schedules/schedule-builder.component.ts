@@ -32,7 +32,6 @@ export class ScheduleBuilderComponent implements OnInit {
   showEventDialog = signal(false);
   editingCourse = signal<Course | null>(null);
   editingEvent = signal<Event | null>(null);
-
   // Calendar configuration
   days: DayOfWeek[] = [
     'Monday',
@@ -147,6 +146,7 @@ export class ScheduleBuilderComponent implements OnInit {
 
   // Check if an item appears in a specific time slot and day
   getItemsInSlot(day: DayOfWeek, timeSlot: string): ScheduleItem[] {
+    console.log(this.schedule);
     const items = this.allItems();
     const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
     const slotTime = slotHour * 60 + slotMinute;

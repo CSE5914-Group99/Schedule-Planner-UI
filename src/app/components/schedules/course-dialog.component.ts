@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Campus, Course, DayOfWeek, Term } from '../../models/schedule.model';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { BackendService } from '../../services/backend.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CourseChooserDialogComponent } from '../section-chooser-dialog/section-chooser-dialog.component';
 
 @Component({
   selector: 'app-course-dialog',
@@ -20,6 +22,7 @@ export class CourseDialogComponent implements OnInit {
   delete = output<string>();
   cancel = output<void>();
   backendService = inject(BackendService);
+  dialog = inject(MatDialog);
 
   // Form state
   instructor = signal('');
@@ -60,14 +63,33 @@ export class CourseDialogComponent implements OnInit {
       return;
     }
 
-    const course: Course = {
+    let course: Course = {
       id: this.currentCourseId(),
       courseId: this.courseId().trim(),
       instructor: this.instructor().trim() || undefined,
       session: this.sectionNumber().valueOf() || undefined,
     };
+    let c = this.campus() || 'Columbus';
+    let t = this.term() || 'Autumn 2025';
+    this.backendService.getCoursesFromUserInput(course, c, t).subscribe({
+      next: (cs: Course[]) => {
+        console.log(cs);
 
-    // this.backendService.getCoursesFromUserInput(course, campus)
+        const dialogRef = this.dialog.open(CourseChooserDialogComponent, {
+          width: '600px',
+          data: cs,
+        });
+        console.log("jere");
+
+        dialogRef.afterClosed().subscribe((chosen: Course | undefined) => {
+          if (chosen) {
+            console.log('User chose course:', chosen);
+            course = chosen;
+          }
+        });
+      },
+      error: (err) => console.error(err),
+    });
 
     this.save.emit(course);
   }

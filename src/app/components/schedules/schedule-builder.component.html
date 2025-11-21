@@ -179,6 +179,8 @@
       <div class="dialog-content" (click)="$event.stopPropagation()">
         <app-course-dialog
           [course]="editingCourse()"
+          [campus]="selectedCampus()"
+          [term]="selectedTerm()"
           (save)="saveCourse($event)"
           (delete)="deleteCourse($event)"
           (cancel)="closeCourseDialog()"

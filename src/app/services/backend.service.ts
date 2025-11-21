@@ -89,11 +89,11 @@ export class BackendService {
     return this.http.post<any>(`${this.base_url}/schedule/${userId}/${scheduleId}/course`, course);
   }
 
-  getCoursesFromUserInput(course: Course, campus: string, term: Term) {
-    let subject = course.courseId.replace(/[^A-Z]/gi, '').toUpperCase();
-    let number = course.courseId.replace(/[^0-9]/g, '');
+  getCoursesFromUserInput(course: Course, campus: Campus, term: Term) {
+    const subject = course.courseId.replace(/[^A-Z]/gi, '').toUpperCase();
+    const number = course.courseId.replace(/[^0-9]/g, '');
     return this.http.get<Course[]>(
-      `${this.base_url}/course-search?couse_number=${number}?subject=${subject}?campus=${campus}?term=${term}`,
+      `${this.base_url}/course-search?course_number=${number}&subject=${subject}&campus=${campus}&term=${term}`,
     );
   }
 
