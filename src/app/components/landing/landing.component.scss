@@ -28,7 +28,7 @@
 }
 
 /* 空状态文本特殊样式 */
-.card:first-of-type .muted {
+.empty-state {
   text-align: center;
   padding: 30px 20px;
   font-size: 15px;
@@ -36,7 +36,7 @@
   font-weight: 500;
 }
 
-.card:first-of-type .muted::before {
+.empty-state::before {
   content: "📭";
   display: block;
   font-size: 48px;
@@ -86,7 +86,7 @@
 }
 
 /* Upcoming 区域特殊样式 */
-.card:first-of-type {
+.upcoming-card {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 2px solid #3b82f6;
   margin-bottom: 24px;
@@ -105,7 +105,7 @@
   text-align: center;
 }
 
-.card:first-of-type h3 {
+.upcoming-card h3 {
   color: #1e40af;
   font-size: 20px;
   font-weight: 600;
@@ -116,7 +116,7 @@
   gap: 8px;
 }
 
-.card:first-of-type h3::before {
+.upcoming-card h3::before {
   content: "📅";
   font-size: 22px;
 }

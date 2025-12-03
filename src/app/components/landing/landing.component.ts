@@ -2,7 +2,6 @@ import { Component, inject, OnInit, effect, ChangeDetectorRef } from '@angular/c
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { BackendService } from '../../services/backend.service';
 import { AuthService } from '../../services/auth.service';
 import { ScheduleService } from '../../services/schedule.service';
 import { ScheduleItem } from '../../models/schedule-item.model';
@@ -31,13 +30,9 @@ export class LandingComponent implements OnInit {
 
   upcoming: ScheduleItem[] = [];
 
-  // Backend health state
-  health: string | null = null;
-  healthLoading = false;
   user: User;
 
   // inject services
-  private backend = inject(BackendService);
   private auth = inject(AuthService);
   private scheduleService = inject(ScheduleService);
   public router = inject(Router);
@@ -178,26 +173,5 @@ export class LandingComponent implements OnInit {
       .map((x) => x.item);
 
     this.cdRef.markForCheck();
-  }
-
-  // call backend health endpoint and show result
-  checkBackend() {
-    this.healthLoading = true;
-    this.health = null;
-    this.backend.testEndpoint().subscribe({
-      next: (res) => {
-        this.health = res.status;
-        this.healthLoading = false;
-      },
-      error: (err) => {
-        this.health = err?.message ? `Error: ${err.message}` : `Error: ${JSON.stringify(err)}`;
-        this.healthLoading = false;
-        console.error('Backend testEndpoint error:', err);
-      },
-    });
-  }
-
-  recalc() {
-    /* Placeholder for future difficulty calculation */
   }
 }

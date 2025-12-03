@@ -6,6 +6,7 @@ import {
   NgZone,
   OnInit,
   PLATFORM_ID,
+  OnDestroy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -15,7 +16,11 @@ import { User } from '../../models/user.model';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
+
+function randomPassword() {
+  return Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
+}
 
 export interface CurrentUser {
   id: number;
@@ -30,7 +35,7 @@ export interface CurrentUser {
   styleUrls: ['./header.component.scss'],
   standalone: true,
 })
-export class HeaderComponent implements OnInit, AfterViewInit {
+export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   router: Router = inject(Router);
   dialogRef: MatDialog = inject(MatDialog);
   auth: Auth = inject(Auth);
@@ -42,6 +47,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
   signedIn: boolean = false;
   currentUser: User = { google_uid: '' };
+  private userSubscription: Subscription | null = null;
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -56,13 +62,25 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
+    // Subscribe to AuthService user changes
+    this.userSubscription = this.authService.currentUser$.subscribe((user) => {
+      this.currentUser = user;
+      this.signedIn = !!(user && user.google_uid);
+      this.cdRef.markForCheck(); // Ensure UI updates
+    });
+
     const user = await firstValueFrom(authState(this.auth));
     if (user) {
-      const savedUser = this.authService.getUser();
-      setTimeout(() => {
-        this.signedIn = true;
-        this.currentUser = savedUser;
-      });
+      // If firebase says we are logged in but AuthService doesn't know yet (e.g. refresh),
+      // AuthService constructor should have loaded from localStorage.
+      // If not, we might need to fetch from backend, but usually localStorage is enough.
+      // The subscription above handles the update.
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
     }
   }
 
@@ -75,30 +93,76 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/schedules']);
   }
 
-  signIn() {
-    signInWithPopup(this.auth, new GoogleAuthProvider())
-      .then((result) => {
-        this.saveUserToService(result.user);
-        this.router.navigate(['/landing']);
-      })
-      .catch((error) => console.error('Google sign-in failed:', error));
-  }
+  async signIn() {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(this.auth, provider);
+      const fbUser = result.user;
 
-  saveUserToService(user: any) {
-    this.signedIn = !!user;
-    this.currentUser = {
-      google_uid: user?.uid,
-      email: user?.email,
-    };
-    this.authService.setUser(this.currentUser);
-    this.authService.checkIfExists();
-    // if (this.authService.checkIfExists()) {
-    //   console.log('User exists in backend');
-    //   return this.backendService.getUserByGoogleUid(user.uid); // returns Observable<User>
-    // } else {
-    //   console.log('User does not exist in backend, creating user');
-    //   return this.backendService.createUser(this.currentUser); // returns Observable<User>
-    // }
+      if (!fbUser.email) {
+        console.error('Login failed: No email provided by Google account.');
+        return;
+      }
+
+      const payload: any = {
+        google_uid: fbUser.uid,
+        username: fbUser.uid,
+        email: fbUser.email,
+        password: randomPassword(),
+      };
+
+      this.backendService.getUserByGoogleUid(fbUser.uid).subscribe({
+        next: (user: any) => {
+          this.authService.setUser({
+            email: user.email,
+            google_uid: user.google_uid,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            preferences: user.preferences
+          });
+          this.router.navigate(['/landing']);
+        },
+        error: (err) => {
+          if (err?.status === 404) {
+            this.backendService.createUser(payload).subscribe({
+              next: (created: any) => {
+                this.authService.setUser({
+                  email: created.email,
+                  google_uid: created.google_uid,
+                  first_name: created.first_name,
+                  last_name: created.last_name,
+                  preferences: created.preferences
+                });
+                this.router.navigate(['/landing']);
+              },
+              error: (createErr) => {
+                if (createErr?.status === 409) {
+                  // Race condition, try fetching again
+                  this.backendService.getUserByGoogleUid(fbUser.uid).subscribe({
+                    next: (user2: any) => {
+                      this.authService.setUser({
+                        email: user2.email,
+                        google_uid: user2.google_uid,
+                        first_name: user2.first_name,
+                        last_name: user2.last_name,
+                        preferences: user2.preferences
+                      });
+                      this.router.navigate(['/landing']);
+                    }
+                  });
+                } else {
+                  console.error('Backend createUser error', createErr);
+                }
+              },
+            });
+          } else {
+            console.error('Error checking user by google_uid', err);
+          }
+        },
+      });
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+    }
   }
 
   signOut() {
@@ -127,8 +191,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
         if (result) {
           this.backendService.updateUser(this.currentUser.google_uid || '', result).subscribe({
             next: (updatedUser: User) => {
-              this.currentUser = updatedUser;
-              this.authService.setUser(this.currentUser);
+              this.authService.setUser(updatedUser);
             },
             error: (err) => console.error('Error updating user:', err),
           });
