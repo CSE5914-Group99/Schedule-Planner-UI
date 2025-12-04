@@ -21,6 +21,13 @@
             <span *ngIf="u.location">📍 {{ u.location }}</span>
           </div>
         </div>
+        <button
+          *ngIf="u.type === 'class' && u.courseId"
+          class="details-btn"
+          (click)="onCourseDetailsRequested({ courseId: u.courseId!, teacherName: u.instructor, courseTitle: u.title })"
+        >
+          More Details
+        </button>
       </div>
     </div>
   </section>
@@ -46,8 +53,26 @@
     </aside>
 
     <!-- Schedule -->
-    <app-weekly-schedule [schedule]="schedule"></app-weekly-schedule>
+    <app-weekly-schedule
+      [schedule]="schedule"
+      (courseDetailsRequested)="onCourseDetailsRequested($event)"
+    ></app-weekly-schedule>
   </div>
+
+  <!-- Course Rating Dialog -->
+  @if (showCourseRatingDialog() && ratingCourseId()) {
+    <div class="dialog-overlay" (click)="closeCourseRatingDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <app-course-rating-dialog
+          [courseId]="ratingCourseId()!"
+          [teacherName]="ratingTeacherName()"
+          [courseTitle]="ratingCourseTitle()"
+          (close)="closeCourseRatingDialog()"
+        >
+        </app-course-rating-dialog>
+      </div>
+    </div>
+  }
 
   <!-- builder form removed on landing (read-only page) -->
 </div>

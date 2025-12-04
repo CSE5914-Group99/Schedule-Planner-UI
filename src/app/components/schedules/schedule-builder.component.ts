@@ -16,6 +16,7 @@ import {
 import { CourseDialogComponent } from './course-dialog.component';
 import { EventDialogComponent } from './event-dialog.component';
 import { ScheduleAnalyzerComponent } from './schedule-analyzer/schedule-analyzer.component';
+import { CourseRatingDialogComponent } from '../course-rating-dialog/course-rating-dialog.component';
 import { BackendService } from '../../services/backend.service';
 import { User } from '../../models/user.model';
 
@@ -28,6 +29,7 @@ import { User } from '../../models/user.model';
     CourseDialogComponent,
     EventDialogComponent,
     ScheduleAnalyzerComponent,
+    CourseRatingDialogComponent,
   ],
   templateUrl: './schedule-builder.component.html',
   styleUrls: ['./schedule-builder.component.scss'],
@@ -46,8 +48,12 @@ export class ScheduleBuilderComponent implements OnInit {
   showCourseDialog = signal(false);
   showEventDialog = signal(false);
   showAnalyzer = signal(false);
+  showCourseRatingDialog = signal(false);
   editingCourse = signal<Course | null>(null);
   editingEvent = signal<Event | null>(null);
+  ratingCourseId = signal<string | null>(null);
+  ratingTeacherName = signal<string | undefined>(undefined);
+  ratingCourseTitle = signal<string | undefined>(undefined);
   // Calendar configuration
   days: DayOfWeek[] = [
     'Monday',
@@ -89,6 +95,7 @@ export class ScheduleBuilderComponent implements OnInit {
         type: 'course',
         courseId: course.courseId,
         instructor: details,
+        instructorName: course.instructor, // Original instructor name for API calls
         startTime: course.startTime || '',
         endTime: course.endTime || '',
         repeatDays: course.repeatDays || [],
@@ -309,6 +316,21 @@ export class ScheduleBuilderComponent implements OnInit {
     if (score >= 60) return 'difficulty-hard';
     if (score >= 40) return 'difficulty-moderate';
     return 'difficulty-easy';
+  }
+
+  // Course Rating Dialog
+  openCourseRatingDialog(courseId: string, teacherName?: string, courseTitle?: string) {
+    this.ratingCourseId.set(courseId);
+    this.ratingTeacherName.set(teacherName);
+    this.ratingCourseTitle.set(courseTitle);
+    this.showCourseRatingDialog.set(true);
+  }
+
+  closeCourseRatingDialog() {
+    this.showCourseRatingDialog.set(false);
+    this.ratingCourseId.set(null);
+    this.ratingTeacherName.set(undefined);
+    this.ratingCourseTitle.set(undefined);
   }
 
   // Analyzer
