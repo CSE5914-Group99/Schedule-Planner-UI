@@ -1,0 +1,183 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <div class="header-content">
+      <h2>
+        {{ courseTitle() || courseId() }}
+        @if (teacherName()) {
+          <span class="instructor-name">with {{ teacherName() }}</span>
+        }
+      </h2>
+      <span class="subtitle">Course Difficulty Analysis</span>
+    </div>
+    <button class="close-btn" (click)="onClose()" aria-label="Close dialog">×</button>
+  </div>
+
+  <div class="dialog-body">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading course ratings...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error() }}</p>
+        <button class="btn retry-btn" (click)="fetchRatings()">Try Again</button>
+      </div>
+    } @else if (ratings()) {
+      <!-- Main Score Card -->
+      <div class="score-overview">
+        <div class="main-score-card" [class]="getScoreClass(ratings()!.score)">
+          <div class="score-value">{{ ratings()!.score }}</div>
+          <div class="score-label">{{ getDifficultyLabel(ratings()!.score) }}</div>
+        </div>
+        <div class="score-meta">
+          <div class="meta-item">
+            <span class="meta-label">Credit Hours</span>
+            <span class="meta-value">{{ ratings()!.ch }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Weekly Time</span>
+            <span class="meta-value">{{ ratings()!.time_load }} hrs</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Confidence</span>
+            <span class="meta-value">{{ formatConfidence(ratings()!.confidence) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-section">
+        <h3>Overview</h3>
+        <p>{{ ratings()!.summary }}</p>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="metrics-section">
+        <h3>Difficulty Breakdown</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-icon">📚</span>
+              <span class="metric-name">Rigor</span>
+            </div>
+            <div class="metric-bar-container">
+              <div
+                class="metric-bar"
+                [style.width.%]="ratings()!.rigor"
+                [class]="getScoreClass(ratings()!.rigor)"
+              ></div>
+            </div>
+            <div class="metric-value">{{ ratings()!.rigor }}/100</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-icon">📝</span>
+              <span class="metric-name">Assessment Intensity</span>
+            </div>
+            <div class="metric-bar-container">
+              <div
+                class="metric-bar"
+                [style.width.%]="ratings()!.assessment_intensity"
+                [class]="getScoreClass(ratings()!.assessment_intensity)"
+              ></div>
+            </div>
+            <div class="metric-value">{{ ratings()!.assessment_intensity }}/100</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-icon">💻</span>
+              <span class="metric-name">Project Intensity</span>
+            </div>
+            <div class="metric-bar-container">
+              <div
+                class="metric-bar"
+                [style.width.%]="ratings()!.project_intensity"
+                [class]="getScoreClass(ratings()!.project_intensity)"
+              ></div>
+            </div>
+            <div class="metric-value">{{ ratings()!.project_intensity }}/100</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-icon">⏱️</span>
+              <span class="metric-name">Pace</span>
+            </div>
+            <div class="metric-bar-container">
+              <div
+                class="metric-bar"
+                [style.width.%]="ratings()!.pace"
+                [class]="getScoreClass(ratings()!.pace)"
+              ></div>
+            </div>
+            <div class="metric-value">{{ ratings()!.pace }}/100</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prerequisites & Co-requisites -->
+      @if (ratings()!.pre_reqs.length > 0 || ratings()!.co_reqs.length > 0) {
+        <div class="requirements-section">
+          <h3>Requirements</h3>
+          <div class="requirements-grid">
+            @if (ratings()!.pre_reqs.length > 0) {
+              <div class="requirement-group">
+                <h4>Prerequisites</h4>
+                <div class="tag-list">
+                  @for (prereq of ratings()!.pre_reqs; track prereq) {
+                    <span class="tag prereq-tag">{{ prereq }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (ratings()!.co_reqs.length > 0) {
+              <div class="requirement-group">
+                <h4>Co-requisites</h4>
+                <div class="tag-list">
+                  @for (coreq of ratings()!.co_reqs; track coreq) {
+                    <span class="tag coreq-tag">{{ coreq }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Tags -->
+      @if (ratings()!.tags.length > 0) {
+        <div class="tags-section">
+          <h3>Course Tags</h3>
+          <div class="tag-list">
+            @for (tag of ratings()!.tags; track tag) {
+              <span class="tag course-tag">{{ tag }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Student Reviews -->
+      @if (ratings()!.evidence_snippets.length > 0) {
+        <div class="reviews-section">
+          <h3>What Students Say</h3>
+          <div class="reviews-list">
+            @for (snippet of ratings()!.evidence_snippets; track snippet) {
+              <div class="review-card">
+                <span class="quote-icon">"</span>
+                <p>{{ snippet }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="dialog-footer">
+    <button class="btn close-footer-btn" (click)="onClose()">Close</button>
+  </div>
+</div>

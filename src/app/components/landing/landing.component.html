@@ -2,9 +2,9 @@
   <h2 class="title">Schedule Planner</h2>
 
   <!-- Upcoming at top -->
-  <section class="card">
+  <section class="card upcoming-card">
     <h3>Upcoming (next 5)</h3>
-    <div *ngIf="!upcoming.length" class="muted">No upcoming items.</div>
+    <div *ngIf="!upcoming.length" class="muted empty-state">No upcoming items.</div>
     <div class="upcoming-list" *ngIf="upcoming.length">
       <div class="upcoming-item" *ngFor="let u of upcoming">
         <div class="upcoming-time">
@@ -21,6 +21,13 @@
             <span *ngIf="u.location">📍 {{ u.location }}</span>
           </div>
         </div>
+        <button
+          *ngIf="u.type === 'class' && u.courseId"
+          class="details-btn"
+          (click)="onCourseDetailsRequested({ courseId: u.courseId!, teacherName: u.instructor, courseTitle: u.title })"
+        >
+          More Details
+        </button>
       </div>
     </div>
   </section>
@@ -30,22 +37,12 @@
     <aside class="card side">
       <h4>Estimated Difficulty</h4>
       <p class="muted">
-        This schedule has an estimated difficulty of
-        <strong>{{ schedule.difficultyScore }}</strong> hours per week
+        This schedule has an estimated difficulty score of
+        <strong>{{ schedule.difficultyScore | number: '1.0-0' }}</strong>.
       </p>
-      <button class="btn ghost" (click)="recalc()">Estimate Difficulty</button>
-
-      <div class="divider"></div>
-
-      <h4>Backend</h4>
-      <button class="btn" (click)="checkBackend()">Check backend health</button>
-      <div class="muted" *ngIf="healthLoading">Checking backend...</div>
-      <pre
-        *ngIf="health"
-        class="muted"
-        style="white-space: pre-wrap; max-height: 6rem; overflow: auto"
-        >{{ health }}</pre
-      >
+      <p class="muted" *ngIf="schedule.weeklyHours">
+        Estimated workload: <strong>{{ schedule.weeklyHours | number: '1.1-1' }}</strong> hours per week.
+      </p>
 
       <div class="divider"></div>
 
@@ -56,8 +53,26 @@
     </aside>
 
     <!-- Schedule -->
-    <app-weekly-schedule [schedule]="schedule"></app-weekly-schedule>
+    <app-weekly-schedule
+      [schedule]="schedule"
+      (courseDetailsRequested)="onCourseDetailsRequested($event)"
+    ></app-weekly-schedule>
   </div>
+
+  <!-- Course Rating Dialog -->
+  @if (showCourseRatingDialog() && ratingCourseId()) {
+    <div class="dialog-overlay" (click)="closeCourseRatingDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <app-course-rating-dialog
+          [courseId]="ratingCourseId()!"
+          [teacherName]="ratingTeacherName()"
+          [courseTitle]="ratingCourseTitle()"
+          (close)="closeCourseRatingDialog()"
+        >
+        </app-course-rating-dialog>
+      </div>
+    </div>
+  }
 
   <!-- builder form removed on landing (read-only page) -->
 </div>

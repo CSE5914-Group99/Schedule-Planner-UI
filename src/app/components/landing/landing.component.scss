@@ -28,7 +28,7 @@
 }
 
 /* 空状态文本特殊样式 */
-.card:first-of-type .muted {
+.empty-state {
   text-align: center;
   padding: 30px 20px;
   font-size: 15px;
@@ -36,7 +36,7 @@
   font-weight: 500;
 }
 
-.card:first-of-type .muted::before {
+.empty-state::before {
   content: "📭";
   display: block;
   font-size: 48px;
@@ -86,7 +86,7 @@
 }
 
 /* Upcoming 区域特殊样式 */
-.card:first-of-type {
+.upcoming-card {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 2px solid #3b82f6;
   margin-bottom: 24px;
@@ -105,7 +105,7 @@
   text-align: center;
 }
 
-.card:first-of-type h3 {
+.upcoming-card h3 {
   color: #1e40af;
   font-size: 20px;
   font-weight: 600;
@@ -116,9 +116,89 @@
   gap: 8px;
 }
 
-.card:first-of-type h3::before {
+.upcoming-card h3::before {
   content: "📅";
   font-size: 22px;
+}
+
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.upcoming-time {
+  min-width: 100px;
+  text-align: center;
+  border-right: 1px solid rgba(59, 130, 246, 0.2);
+  padding-right: 16px;
+
+  .day {
+    font-weight: 600;
+    color: #1e40af;
+    font-size: 14px;
+  }
+
+  .time {
+    color: #3b82f6;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}
+
+.upcoming-details {
+  flex: 1;
+}
+
+.upcoming-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upcoming-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  display: flex;
+  gap: 12px;
+}
+
+.details-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
 }
 
 .upcoming {
@@ -427,4 +507,48 @@ textarea {
   border-radius: 8px;
   font-size: 13px;
   color: #6b7280;
+}
+
+/* Course Rating Dialog Overlay */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog-content {
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

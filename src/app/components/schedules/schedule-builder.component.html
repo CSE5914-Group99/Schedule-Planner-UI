@@ -183,8 +183,17 @@
                     (click)="onItemClick(item, $event)"
                   >
                     <div class="item-content">
-                      <div class="item-header">
+                      <div class="item-left">
                         <span class="item-title">{{ item.title }}</span>
+                        @if (item.instructor) {
+                          <div class="item-subtitle">{{ item.instructor }}</div>
+                        }
+                        @if (item.description && !item.instructor) {
+                          <div class="item-subtitle">{{ item.description }}</div>
+                        }
+                        <div class="item-time">{{ item.startTime }} - {{ item.endTime }}</div>
+                      </div>
+                      <div class="item-right">
                         @if (item.type === 'course' && getCourseDifficulty(item.id)) {
                           <span
                             class="difficulty-badge"
@@ -193,14 +202,15 @@
                             {{ getCourseDifficulty(item.id) }}
                           </span>
                         }
+                        @if (item.type === 'course' && item.courseId) {
+                          <button
+                            class="more-details-btn"
+                            (click)="openCourseRatingDialog(item.courseId!, item.instructorName, item.title); $event.stopPropagation()"
+                          >
+                            Info
+                          </button>
+                        }
                       </div>
-                      @if (item.instructor) {
-                        <div class="item-subtitle">{{ item.instructor }}</div>
-                      }
-                      @if (item.description && !item.instructor) {
-                        <div class="item-subtitle">{{ item.description }}</div>
-                      }
-                      <div class="item-time">{{ item.startTime }} - {{ item.endTime }}</div>
                     </div>
                   </div>
                 }
@@ -310,6 +320,21 @@
           (cancel)="closeEventDialog()"
         >
         </app-event-dialog>
+      </div>
+    </div>
+  }
+
+  <!-- Course Rating Dialog -->
+  @if (showCourseRatingDialog() && ratingCourseId()) {
+    <div class="dialog-overlay" (click)="closeCourseRatingDialog()">
+      <div class="dialog-content rating-dialog-content" (click)="$event.stopPropagation()">
+        <app-course-rating-dialog
+          [courseId]="ratingCourseId()!"
+          [teacherName]="ratingTeacherName()"
+          [courseTitle]="ratingCourseTitle()"
+          (close)="closeCourseRatingDialog()"
+        >
+        </app-course-rating-dialog>
       </div>
     </div>
   }

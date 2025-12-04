@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DayOfWeek, Schedule } from '../../models/schedule.model';
+import { Course, DayOfWeek, Schedule } from '../../models/schedule.model';
 
 @Component({
   selector: 'app-weekly-schedule',
-  standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './weekly-schedule.component.html',
   styleUrls: ['./weekly-schedule.component.scss'],
@@ -35,6 +34,13 @@ export class WeeklyScheduleComponent {
   ];
 
   @Input({ required: true }) schedule!: Schedule;
+
+  /** Emitted when user clicks "More Details" on a course */
+  courseDetailsRequested = output<{
+    courseId: string;
+    teacherName?: string;
+    courseTitle?: string;
+  }>();
 
   getDayIndex(day: DayOfWeek): number {
     return this.days.indexOf(day);
@@ -76,5 +82,14 @@ export class WeeklyScheduleComponent {
   parseTime(time: string): number {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
+  }
+
+  onCourseDetailsClick(course: Course, event: MouseEvent) {
+    event.stopPropagation();
+    this.courseDetailsRequested.emit({
+      courseId: course.courseId,
+      teacherName: course.instructor,
+      courseTitle: course.title,
+    });
   }
 }

@@ -1,19 +1,18 @@
-import { Component, inject, OnInit, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, effect, ChangeDetectorRef, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { BackendService } from '../../services/backend.service';
 import { AuthService } from '../../services/auth.service';
 import { ScheduleService } from '../../services/schedule.service';
 import { ScheduleItem } from '../../models/schedule-item.model';
 import { WeeklyScheduleComponent } from '../weekly-schedule/weekly-schedule.component';
+import { CourseRatingDialogComponent } from '../course-rating-dialog/course-rating-dialog.component';
 import { Schedule } from '../../models/schedule.model';
 import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-landing',
-  standalone: true,
-  imports: [FormsModule, CommonModule, WeeklyScheduleComponent],
+  imports: [FormsModule, CommonModule, WeeklyScheduleComponent, CourseRatingDialogComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
 })
@@ -31,13 +30,9 @@ export class LandingComponent implements OnInit {
 
   upcoming: ScheduleItem[] = [];
 
-  // Backend health state
-  health: string | null = null;
-  healthLoading = false;
   user: User;
 
   // inject services
-  private backend = inject(BackendService);
   private auth = inject(AuthService);
   private scheduleService = inject(ScheduleService);
   public router = inject(Router);
@@ -48,6 +43,12 @@ export class LandingComponent implements OnInit {
 
   // Store flattened items for upcoming calculation
   allItems: ScheduleItem[] = [];
+
+  // Course rating dialog state
+  showCourseRatingDialog = signal(false);
+  ratingCourseId = signal<string | null>(null);
+  ratingTeacherName = signal<string | undefined>(undefined);
+  ratingCourseTitle = signal<string | undefined>(undefined);
 
   constructor() {
     this.user = this.auth.getUser();
@@ -180,24 +181,22 @@ export class LandingComponent implements OnInit {
     this.cdRef.markForCheck();
   }
 
-  // call backend health endpoint and show result
-  checkBackend() {
-    this.healthLoading = true;
-    this.health = null;
-    this.backend.testEndpoint().subscribe({
-      next: (res) => {
-        this.health = res.status;
-        this.healthLoading = false;
-      },
-      error: (err) => {
-        this.health = err?.message ? `Error: ${err.message}` : `Error: ${JSON.stringify(err)}`;
-        this.healthLoading = false;
-        console.error('Backend testEndpoint error:', err);
-      },
-    });
+  // Course rating dialog methods
+  onCourseDetailsRequested(event: {
+    courseId: string;
+    teacherName?: string;
+    courseTitle?: string;
+  }) {
+    this.ratingCourseId.set(event.courseId);
+    this.ratingTeacherName.set(event.teacherName);
+    this.ratingCourseTitle.set(event.courseTitle);
+    this.showCourseRatingDialog.set(true);
   }
 
-  recalc() {
-    /* Placeholder for future difficulty calculation */
+  closeCourseRatingDialog() {
+    this.showCourseRatingDialog.set(false);
+    this.ratingCourseId.set(null);
+    this.ratingTeacherName.set(undefined);
+    this.ratingCourseTitle.set(undefined);
   }
 }
