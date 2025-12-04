@@ -91,6 +91,7 @@ export interface ScheduleItem {
   type: 'course' | 'event';
   courseId?: string;
   instructor?: string;
+  instructorName?: string; // Original instructor name without section info (for API calls)
   description?: string;
   startTime: string;
   endTime: string;
@@ -119,4 +120,24 @@ export interface Alteration {
   estimatedTimeChange: number; // -2.5
   confidence: number; // 0.85
   warnings: string[]; // ["CSE2200 may have a time conflict with MATH2115"]
+}
+
+/**
+ * Course rating details from the backend API.
+ * Provides comprehensive difficulty and workload analysis for a course.
+ */
+export interface ClassScore {
+  score: number; // 1-100, overall difficulty score
+  ch: number; // credit hours
+  summary: string; // 2-3 sentence overview
+  time_load: number; // 0-8, weekly time commitment in hours
+  rigor: number; // 0-100, conceptual depth
+  assessment_intensity: number; // 0-100, exam difficulty/frequency
+  project_intensity: number; // 0-100, project workload
+  pace: number; // 0-100, speed of material coverage
+  pre_reqs: string[]; // prerequisite courses (e.g., ["CSE 1223"])
+  co_reqs: string[]; // co-requisite courses
+  tags: string[]; // descriptive tags (e.g., ["math-heavy", "project-based"])
+  evidence_snippets: string[]; // 3-5 student review quotes
+  confidence: number; // 0.0-1.0, confidence in the rating
 }

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, effect, ChangeDetectorRef, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -6,13 +6,13 @@ import { AuthService } from '../../services/auth.service';
 import { ScheduleService } from '../../services/schedule.service';
 import { ScheduleItem } from '../../models/schedule-item.model';
 import { WeeklyScheduleComponent } from '../weekly-schedule/weekly-schedule.component';
+import { CourseRatingDialogComponent } from '../course-rating-dialog/course-rating-dialog.component';
 import { Schedule } from '../../models/schedule.model';
 import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-landing',
-  standalone: true,
-  imports: [FormsModule, CommonModule, WeeklyScheduleComponent],
+  imports: [FormsModule, CommonModule, WeeklyScheduleComponent, CourseRatingDialogComponent],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
 })
@@ -43,6 +43,12 @@ export class LandingComponent implements OnInit {
 
   // Store flattened items for upcoming calculation
   allItems: ScheduleItem[] = [];
+
+  // Course rating dialog state
+  showCourseRatingDialog = signal(false);
+  ratingCourseId = signal<string | null>(null);
+  ratingTeacherName = signal<string | undefined>(undefined);
+  ratingCourseTitle = signal<string | undefined>(undefined);
 
   constructor() {
     this.user = this.auth.getUser();
@@ -173,5 +179,24 @@ export class LandingComponent implements OnInit {
       .map((x) => x.item);
 
     this.cdRef.markForCheck();
+  }
+
+  // Course rating dialog methods
+  onCourseDetailsRequested(event: {
+    courseId: string;
+    teacherName?: string;
+    courseTitle?: string;
+  }) {
+    this.ratingCourseId.set(event.courseId);
+    this.ratingTeacherName.set(event.teacherName);
+    this.ratingCourseTitle.set(event.courseTitle);
+    this.showCourseRatingDialog.set(true);
+  }
+
+  closeCourseRatingDialog() {
+    this.showCourseRatingDialog.set(false);
+    this.ratingCourseId.set(null);
+    this.ratingTeacherName.set(undefined);
+    this.ratingCourseTitle.set(undefined);
   }
 }

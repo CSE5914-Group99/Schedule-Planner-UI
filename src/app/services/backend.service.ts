@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { environment } from '../environment';
 import { User } from '../models/user.model';
 import {
   Campus,
+  ClassScore,
   Course,
   Event,
   ModificationRequests,
@@ -19,6 +20,9 @@ import {
 export class BackendService {
   readonly base_url = environment.apiBaseUrl;
   http: HttpClient = inject(HttpClient);
+
+  // Cache for course ratings to avoid repeated API calls
+  private courseRatingsCache = new Map<string, ClassScore>();
 
   testEndpoint(): Observable<any> {
     return this.http.get<any>(`${this.base_url}/health`);
@@ -133,6 +137,33 @@ export class BackendService {
       schedule,
       modification_requests,
     });
+  }
+
+  /**
+   * Fetch detailed course ratings and difficulty analysis.
+   * Results are cached to avoid repeated API calls.
+   * @param courseId - The course ID (e.g., "CSE2331")
+   * @param teacherName - Optional instructor name for instructor-specific ratings
+   */
+  getCourseRatings(courseId: string, teacherName?: string): Observable<ClassScore> {
+    // Create a cache key based on courseId and teacherName
+    const cacheKey = teacherName ? `${courseId}__${teacherName}` : courseId;
+
+    // Return cached value if available
+    const cached = this.courseRatingsCache.get(cacheKey);
+    if (cached) {
+      return of(cached);
+    }
+
+    // Otherwise fetch from API and cache the result
+    let url = `${this.base_url}/courses/ratings/${encodeURIComponent(courseId)}`;
+    if (teacherName) {
+      const params = new URLSearchParams({ teacher_name: teacherName });
+      url += `?${params.toString()}`;
+    }
+    return this.http.get<ClassScore>(url).pipe(
+      tap((result) => this.courseRatingsCache.set(cacheKey, result))
+    );
   }
 
   generateSchedules(
