@@ -130,6 +130,35 @@ export class ScheduleBuilderComponent implements OnInit {
   isGeneratedMode = signal(false);
   selectedGeneratedIndex = signal(0);
 
+  // NEW: Track if user has accepted/selected a generated schedule
+  hasAcceptedSchedule = signal(false);
+
+  // NEW: Computed property to determine if Analyze button should be enabled
+  canAnalyze = computed(() => {
+    // If in generated mode, user must have accepted a schedule first
+    if (this.isGeneratedMode()) {
+      return this.hasAcceptedSchedule();
+    }
+    
+    // If not in generated mode, can analyze if there are courses
+    const sched = this.schedule();
+    return sched && sched.courses && sched.courses.length > 0;
+  });
+
+  // NEW: Helper method for tooltip text
+  getAnalyzeTooltip(): string {
+    if (this.analyzing()) {
+      return 'Analyzing schedule...';
+    }
+    if (this.isGeneratedMode() && !this.hasAcceptedSchedule()) {
+      return 'Please click "Keep This Schedule" first to analyze';
+    }
+    if (!this.schedule() || this.schedule()!.courses.length === 0) {
+      return 'Add courses to analyze schedule';
+    }
+    return 'Analyze schedule difficulty and workload';
+  }
+
   //Campus/term
   campuses: Campus[] = ['Columbus', 'Lima', 'Mansfield', 'Marion', 'Newark', 'Wooster'];
   terms: Term[] = ['Summer 2025', 'Autumn 2025', 'Spring 2026'];
@@ -407,6 +436,7 @@ export class ScheduleBuilderComponent implements OnInit {
 
     this.generating.set(true);
     this.errorMessage.set(null);
+    this.hasAcceptedSchedule.set(false); // 🆕 NEW: Reset when generating new schedules
 
     // Backup current schedule
     this.originalSchedule.set(JSON.parse(JSON.stringify(sched)));
@@ -483,6 +513,7 @@ export class ScheduleBuilderComponent implements OnInit {
   }
 
   acceptGeneratedSchedule() {
+    this.hasAcceptedSchedule.set(true); // 🆕 NEW: Mark as accepted
     this.isGeneratedMode.set(false);
     this.generatedSchedules.set([]);
     this.originalSchedule.set(null);
@@ -494,6 +525,7 @@ export class ScheduleBuilderComponent implements OnInit {
     if (original) {
       this.scheduleService.setCurrentSchedule(original);
     }
+    this.hasAcceptedSchedule.set(false); // 🆕 NEW: Reset flag
     this.isGeneratedMode.set(false);
     this.generatedSchedules.set([]);
     this.originalSchedule.set(null);
