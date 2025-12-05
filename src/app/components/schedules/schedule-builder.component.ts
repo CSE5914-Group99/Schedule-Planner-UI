@@ -12,6 +12,7 @@ import {
   Term,
   Campus,
   Schedule,
+  ClassScore,
 } from '../../models/schedule.model';
 import { CourseDialogComponent } from './course-dialog.component';
 import { EventDialogComponent } from './event-dialog.component';
@@ -341,10 +342,12 @@ export class ScheduleBuilderComponent implements OnInit {
   }
 
   getDifficultyClass(score: number): string {
-    if (score >= 80) return 'difficulty-very-hard';
-    if (score >= 60) return 'difficulty-hard';
-    if (score >= 40) return 'difficulty-moderate';
-    return 'difficulty-easy';
+    // Unified color scheme: <65 green, 65-70 yellow, 71-75 orange, 76-80 light red, 81-100 bright red
+    if (score >= 81) return 'difficulty-bright-red';
+    if (score >= 76) return 'difficulty-light-red';
+    if (score >= 71) return 'difficulty-orange';
+    if (score >= 65) return 'difficulty-yellow';
+    return 'difficulty-green';
   }
 
   // Course Rating Dialog
@@ -360,6 +363,13 @@ export class ScheduleBuilderComponent implements OnInit {
     this.ratingCourseId.set(null);
     this.ratingTeacherName.set(undefined);
     this.ratingCourseTitle.set(undefined);
+  }
+
+  onRatingLoaded(event: { courseId: string; score: number; classScore: ClassScore }) {
+    // Update the course's difficultyRating in the schedule so the color persists on calendar
+    this.scheduleService.updateCourse(event.courseId, {
+      difficultyRating: event.score,
+    });
   }
 
   // Analyzer

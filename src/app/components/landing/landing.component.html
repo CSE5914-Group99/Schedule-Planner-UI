@@ -68,6 +68,7 @@
           [teacherName]="ratingTeacherName()"
           [courseTitle]="ratingCourseTitle()"
           (close)="closeCourseRatingDialog()"
+          (ratingLoaded)="onRatingLoaded($event)"
         >
         </app-course-rating-dialog>
       </div>
