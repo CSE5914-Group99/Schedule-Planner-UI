@@ -4,15 +4,18 @@ import { Observable, of, tap } from 'rxjs';
 import { environment } from '../environment';
 import { User } from '../models/user.model';
 import {
+  Alteration,
   Campus,
   ClassScore,
   Course,
+  DayOfWeek,
   Event,
   ModificationRequests,
   Schedule,
   ScheduleAlterations,
   Term,
 } from '../models/schedule.model';
+import { mock } from 'node:test';
 
 @Injectable({
   providedIn: 'root',
@@ -131,12 +134,72 @@ export class BackendService {
 
   getClassRecommendations(
     schedule: Schedule,
-    modification_requests: ModificationRequests,
-  ): Observable<ScheduleAlterations> {
-    return this.http.post<ScheduleAlterations>(`${this.base_url}/courses/class-recommendations`, {
-      schedule,
-      modification_requests,
-    });
+    modification_requests: ModificationRequests[],
+  ): Observable<any> {
+    const payload = this.toClassRecommendationRequest(schedule, modification_requests);
+    return this.http.post<any>(`${this.base_url}/courses/class-recommendations`, payload);
+  }
+
+  toClassRecommendationRequest(
+    schedule: Schedule,
+    modificationRequests: ModificationRequests[],
+  ): any {
+    const scheduleClasses = schedule.courses.map((c) => ({
+      class_id: c.courseId,
+      teacher: c.instructor ?? 'Unknown',
+      time_slots: [
+        {
+          start_time: c.startTime ?? '00:00',
+          end_time: c.endTime ?? '00:00',
+          repeat_days: c.repeatDays ?? [],
+        },
+      ],
+    }));
+
+    const classScores = schedule.courses.map((c) => ({
+      class_id: c.courseId,
+      teacher: c.instructor ?? 'Unknown',
+      score: Math.max(c.difficultyRating ?? 1, 1),
+      ch: c.creditHours ?? 3,
+      summary: c.title ?? `${c.courseId} — ${c.instructor ?? 'Unknown'}`,
+      time_load: schedule.weeklyHours ?? 0,
+      rigor: 0,
+      assessment_intensity: 0,
+      project_intensity: 0,
+      pace: 50,
+      pre_reqs: [],
+      co_reqs: [],
+      tags: [],
+      evidence_snippets: [],
+      confidence: 0.6,
+    }));
+
+    const scheduleScore = {
+      difficulty: schedule.difficultyScore ?? 1,
+      hours_per_week: schedule.weeklyHours ?? 0,
+      credits: schedule.creditHours ?? 0,
+      class_scores: classScores, // <-- array now
+      total_credit_hours: schedule.creditHours ?? 0,
+      num_classes: schedule.courses.length,
+      summary: `${schedule.courses.length} classes, ${schedule.creditHours ?? 0} credits`,
+      adjusted_difficulty: Math.max(schedule.difficultyScore ?? 1, 1),
+      adjusted_assessment_intensity: 0,
+      adjusted_project_intensity: 0,
+      adjusted_rigor: 0,
+      time_load: schedule.weeklyHours ?? 0,
+      constraints: '',
+      confidence: 0.6,
+    };
+
+    return {
+      schedule: scheduleClasses,
+      schedule_score: scheduleScore,
+      modification_requests: modificationRequests.map((m) => ({
+        class_to_replace: m.classToReplace ?? null,
+        reason: m.reason,
+        criteria: m.criteria,
+      })),
+    };
   }
 
   /**
@@ -161,9 +224,9 @@ export class BackendService {
       const params = new URLSearchParams({ teacher_name: teacherName });
       url += `?${params.toString()}`;
     }
-    return this.http.get<ClassScore>(url).pipe(
-      tap((result) => this.courseRatingsCache.set(cacheKey, result))
-    );
+    return this.http
+      .get<ClassScore>(url)
+      .pipe(tap((result) => this.courseRatingsCache.set(cacheKey, result)));
   }
 
   generateSchedules(

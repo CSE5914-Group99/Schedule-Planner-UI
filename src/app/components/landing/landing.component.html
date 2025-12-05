@@ -24,7 +24,13 @@
         <button
           *ngIf="u.type === 'class' && u.courseId"
           class="details-btn"
-          (click)="onCourseDetailsRequested({ courseId: u.courseId!, teacherName: u.instructor, courseTitle: u.title })"
+          (click)="
+            onCourseDetailsRequested({
+              courseId: u.courseId!,
+              teacherName: u.instructor,
+              courseTitle: u.title,
+            })
+          "
         >
           More Details
         </button>
@@ -38,10 +44,12 @@
       <h4>Estimated Difficulty</h4>
       <p class="muted">
         This schedule has an estimated difficulty score of
-        <strong>{{ schedule.difficultyScore | number: '1.0-0' }}</strong>.
+        <strong>{{ schedule.difficultyScore | number: '1.0-0' }}</strong
+        >.
       </p>
       <p class="muted" *ngIf="schedule.weeklyHours">
-        Estimated workload: <strong>{{ schedule.weeklyHours | number: '1.1-1' }}</strong> hours per week.
+        Estimated workload: <strong>{{ schedule.weeklyHours | number: '1.1-1' }}</strong> hours per
+        week.
       </p>
 
       <div class="divider"></div>

@@ -2,8 +2,8 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ScheduleService } from '../../services/schedule.service';
-import { AuthService } from '../../services/auth.service';
+import { ScheduleService } from '../../../services/schedule.service';
+import { AuthService } from '../../../services/auth.service';
 import {
   Course,
   Event,
@@ -12,13 +12,18 @@ import {
   Term,
   Campus,
   Schedule,
-} from '../../models/schedule.model';
-import { CourseDialogComponent } from './course-dialog.component';
-import { EventDialogComponent } from './event-dialog.component';
-import { ScheduleAnalyzerComponent } from './schedule-analyzer/schedule-analyzer.component';
-import { CourseRatingDialogComponent } from '../course-rating-dialog/course-rating-dialog.component';
-import { BackendService } from '../../services/backend.service';
-import { User } from '../../models/user.model';
+  ModificationRequests,
+  ScheduleAlterations,
+  Alteration,
+} from '../../../models/schedule.model';
+import { CourseDialogComponent } from '../course-dialog/course-dialog.component';
+import { EventDialogComponent } from '../event-dialog/event-dialog.component';
+import { ScheduleAnalyzerComponent } from '../schedule-analyzer/schedule-analyzer.component';
+import { CourseRatingDialogComponent } from '../../course-rating-dialog/course-rating-dialog.component';
+import { BackendService } from '../../../services/backend.service';
+import { User } from '../../../models/user.model';
+import { WeeklyScheduleComponent } from '../../weekly-schedule/weekly-schedule.component';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-schedule-builder',
@@ -30,6 +35,7 @@ import { User } from '../../models/user.model';
     EventDialogComponent,
     ScheduleAnalyzerComponent,
     CourseRatingDialogComponent,
+    WeeklyScheduleComponent,
   ],
   templateUrl: './schedule-builder.component.html',
   styleUrls: ['./schedule-builder.component.scss'],
@@ -54,6 +60,12 @@ export class ScheduleBuilderComponent implements OnInit {
   ratingCourseId = signal<string | null>(null);
   ratingTeacherName = signal<string | undefined>(undefined);
   ratingCourseTitle = signal<string | undefined>(undefined);
+  alterDialogVisible = signal(false);
+  selectedAlterClasses = signal<Course[]>([]);
+  criteriaText = signal<string>('');
+  showAlterationPreview = signal(false);
+  alterationOptions = signal<ScheduleAlterations | null>(null);
+  selectedAlterationIndex = signal<number>(0);
   // Calendar configuration
   days: DayOfWeek[] = [
     'Monday',
@@ -132,10 +144,10 @@ export class ScheduleBuilderComponent implements OnInit {
 
   //Campus/term
   campuses: Campus[] = ['Columbus', 'Lima', 'Mansfield', 'Marion', 'Newark', 'Wooster'];
-  terms: Term[] = ['Summer 2025', 'Autumn 2025', 'Spring 2026'];
+  terms: Term[] = ['Autumn 2025', 'Spring 2026', 'Summer 2025'];
 
   selectedCampus = signal<Campus>('Columbus');
-  selectedTerm = signal<Term>('Summer 2025');
+  selectedTerm = signal<Term>('Autumn 2025');
 
   ngOnInit() {
     this.generateTimeSlots();
@@ -184,7 +196,6 @@ export class ScheduleBuilderComponent implements OnInit {
 
   // Check if an item appears in a specific time slot and day
   getItemsInSlot(day: DayOfWeek, timeSlot: string): ScheduleItem[] {
-    console.log(this.schedule);
     const items = this.allItems();
     const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
     const slotStart = slotHour * 60 + slotMinute;
@@ -221,6 +232,19 @@ export class ScheduleBuilderComponent implements OnInit {
   // Calendar item click handlers
   onItemClick(item: ScheduleItem, event: MouseEvent) {
     event.stopPropagation();
+
+    if (this.alterDialogVisible()) {
+      if (item.type === 'course') {
+        const course = this.schedule()?.courses.find((c) => c.id === item.id);
+        if (course) {
+          const current = this.selectedAlterClasses();
+          if (!current.find((c) => c.id === course.id)) {
+            this.selectedAlterClasses.set([...current, course]);
+          }
+        }
+      }
+      return;
+    }
 
     if (item.type === 'course') {
       const course = this.schedule()?.courses.find((c) => c.id === item.id);
@@ -451,11 +475,162 @@ export class ScheduleBuilderComponent implements OnInit {
     });
   }
 
+  alterSchedule() {
+    this.selectedAlterClasses.set([]);
+    this.criteriaText.set('');
+    this.alterDialogVisible.set(true);
+  }
+
+  submitAlterRequest() {
+    const sched = this.schedule();
+    if (!sched) return;
+
+    const requests: ModificationRequests[] = this.selectedAlterClasses().map((course) => ({
+      classToReplace: course.courseId,
+      reason: this.authService.getUser().preferences ?? '',
+      criteria: this.criteriaText(),
+    }));
+
+    this.backendService.getClassRecommendations(sched, requests).subscribe({
+      next: (response) => {
+        console.log('Alteration submitted successfully', response);
+        this.alterDialogVisible.set(false);
+        this.showSuccessMessage.set(true);
+        setTimeout(() => this.showSuccessMessage.set(false), 3000);
+        const alterations: ScheduleAlterations = this.translateToScheduleAlterations(
+          response,
+          this.selectedTerm(),
+          this.selectedCampus(),
+        );
+        this.alterationOptions.set(alterations);
+        this.showAlterationPreview.set(true);
+      },
+      error: (err) => {
+        console.error('Alteration failed', err);
+        this.errorMessage.set('Failed to submit alteration request.');
+      },
+    });
+  }
+
+  translateToScheduleAlterations(
+    backendResponse: any,
+    defaultTerm: string = 'Autumn 2025',
+    defaultCampus: string = 'Columbus',
+  ): ScheduleAlterations {
+    const alterations: Alteration[] = backendResponse.alterations.map((alt: any) => {
+      // Map backend classes_to_add into Course[]
+      const classesToAdd: Course[] = (alt.classes_to_add || []).map((cls: any) => {
+        return {
+          courseId: cls.class_id,
+          id: 0,
+          title: cls.class_id,
+          instructor: cls.teacher,
+          startTime: cls.time_slots?.[0]?.start_time ?? undefined,
+          endTime: cls.time_slots?.[0]?.end_time ?? undefined,
+          repeatDays: (cls.time_slots?.[0]?.repeat_days as DayOfWeek[]) ?? [],
+          difficultyRating: cls.class_score?.score,
+          creditHours: cls.class_score?.ch,
+          ratingDetails: cls.class_score,
+          term: defaultTerm as any,
+          campus: defaultCampus as any,
+        };
+      });
+
+      return {
+        alteration_name: alt.alteration_name,
+        description: alt.description,
+        classes_to_remove: alt.classes_to_remove || [],
+        classes_to_add: classesToAdd,
+        estimated_difficulty_change: alt.estimated_difficulty_change,
+        estimated_time_change: alt.estimated_time_change,
+        confidence: alt.confidence,
+        warnings: alt.warnings || [],
+        why_recommended: alt.classes_to_add?.[0]?.why_recommended ?? '',
+      };
+    });
+
+    return {
+      alterations,
+      overallSummary: backendResponse.overall_summary,
+      confidence: backendResponse.confidence,
+    };
+  }
+
+  applyAlteration(original: Schedule, alteration: any): Schedule {
+    const altered = JSON.parse(JSON.stringify(original));
+
+    // Remove classes
+    altered.courses = altered.courses.filter(
+    (c: any) => !alteration.classes_to_remove.some((removedId: string) => {
+      const courseId = removedId.split('(')[0].split('—')[0].trim();
+      return c.courseId.trim() === courseId;
+    })
+  );
+
+
+    // Add new classes
+    alteration.classes_to_add.forEach((newClass: any) => {
+      altered.courses.push({
+        ...newClass,
+      });
+    });
+
+    return altered;
+  }
+
+  acceptAlteration() {
+    const index = this.selectedAlterationIndex();
+    if (index === null) {
+      this.errorMessage.set('Please select an alteration option first.');
+      return;
+    }
+
+    const alteration = this.alterationOptions()?.alterations[index];
+    if (alteration === undefined) {
+      return;
+    }
+    const current = this.schedule();
+    if (!current) return;
+
+    // Apply alteration: remove and add classes
+    const updated = JSON.parse(JSON.stringify(current));
+
+    // Remove classes
+    if (alteration.classes_to_remove) {
+      updated.courses = updated.courses.filter(
+        (c: any) =>
+          !alteration.classes_to_remove.some((removed: string) => removed.includes(c.courseId)),
+      );
+    }
+
+    // Add classes
+    if (alteration.classes_to_add) {
+      alteration.classes_to_add.forEach((newClass: any, i: number) => {
+        updated.courses.push({
+          ...newClass,
+          id: `${Date.now()}-${i}`,
+          color: this.generateColor('course', i),
+        });
+      });
+    }
+
+    // Update current schedule
+    this.scheduleService.setCurrentSchedule(updated);
+
+    // Close preview popup
+    this.showAlterationPreview.set(false);
+
+    // Mark unsaved changes
+    this.hasUnsavedChanges.set(true);
+
+    // Show success toast
+    this.showSuccessMessage.set(true);
+    setTimeout(() => this.showSuccessMessage.set(false), 3000);
+  }
+
   selectGeneratedSchedule(index: number) {
-    console.log(`Switching to generated schedule option ${index + 1}`);
     this.selectedGeneratedIndex.set(index);
     const genSched = this.generatedSchedules()[index];
-    console.log('Selected schedule data:', genSched);
 
     const original = this.originalSchedule();
 
@@ -585,10 +760,11 @@ export class ScheduleBuilderComponent implements OnInit {
       delete event.id;
     }
 
-    scheduleToSave.createdAt = new Date().toDateString();
+    if (!scheduleToSave.createdAt) {
+      scheduleToSave.createdAt = new Date().toDateString();
+    }
     scheduleToSave.updatedAt = new Date().toDateString();
 
-    console.log('Final schedule data to save:', scheduleToSave);
     let user: User = this.authService.getUser();
 
     const request = scheduleToSave.id
@@ -626,23 +802,6 @@ export class ScheduleBuilderComponent implements OnInit {
         console.error('Save error:', err);
       },
     });
-
-    // this.scheduleService.saveCurrentSchedule().subscribe({
-    //   next: () => {
-    //     this.saving.set(false);
-    //     this.showSuccessMessage.set(true);
-
-    //     // Hide success message after 3 seconds
-    //     setTimeout(() => {
-    //       this.showSuccessMessage.set(false);
-    //     }, 3000);
-    //   },
-    //   error: (err) => {
-    //     this.saving.set(false);
-    //     this.errorMessage.set('Failed to save schedule. Please try again.');
-    //     console.error('Save error:', err);
-    //   },
-    // });
   }
 
   goBack() {

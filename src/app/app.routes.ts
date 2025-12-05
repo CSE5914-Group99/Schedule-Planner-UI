@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { LandingComponent } from './components/landing/landing.component';
 import { LoginComponent } from './components/login/login.component';
-import { ScheduleListComponent } from './components/schedules/schedule-list.component';
-import { ScheduleBuilderComponent } from './components/schedules/schedule-builder.component';
+import { ScheduleListComponent } from './components/schedules/schedule-list/schedule-list.component';
+import { ScheduleBuilderComponent } from './components/schedules/schedule-builder/schedule-builder.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

@@ -92,6 +92,7 @@
           ✨ Generate
         }
       </button>
+      <button class="btn alter-btn" (click)="alterSchedule()">✏️ Alter Schedule</button>
     </div>
 
     <div class="toolbar-section">
@@ -205,7 +206,14 @@
                         @if (item.type === 'course' && item.courseId) {
                           <button
                             class="more-details-btn"
-                            (click)="openCourseRatingDialog(item.courseId!, item.instructorName, item.title); $event.stopPropagation()"
+                            (click)="
+                              openCourseRatingDialog(
+                                item.courseId!,
+                                item.instructorName,
+                                item.title
+                              );
+                              $event.stopPropagation()
+                            "
                           >
                             Info
                           </button>
@@ -288,6 +296,30 @@
             </li>
           </ul>
         </div>
+        @if (alterDialogVisible()) {
+          <div class="alter-panel">
+            <h3>Alter Schedule</h3>
+            <p>Select classes you want to change:</p>
+            <ul>
+              @for (course of selectedAlterClasses(); track course.id) {
+                <li>{{ course.courseId }} - {{ course.instructor }}</li>
+              }
+            </ul>
+            <textarea
+              class="reason-textbox"
+              placeholder="What are you looking for in the replacement?"
+              (input)="criteriaText.set($any($event.target).value)"
+            ></textarea>
+            <div class="alter-actions">
+              <button class="btn secondary-btn" (click)="alterDialogVisible.set(false)">
+                Cancel
+              </button>
+              <button class="btn primary-btn" (click)="submitAlterRequest()">
+                Submit Alteration
+              </button>
+            </div>
+          </div>
+        }
       </aside>
     </div>
   }
@@ -338,6 +370,64 @@
       </div>
     </div>
   }
+
+  <div *ngIf="showAlterationPreview() && alterationOptions() as opts">
+    <div class="dialog-overlay" (click)="showAlterationPreview.set(false)">
+      <div class="dialog-content calendar-preview" (click)="$event.stopPropagation()">
+        <h3>Preview Alterations</h3>
+        <div class="alteration-list">
+          <div *ngFor="let alt of opts.alterations; let i = index">
+            <h4>Option {{ i + 1 }}: {{ alt.alteration_name }}</h4>
+            <p>{{ alt.description }}</p>
+            <p>Confidence: {{ alt.confidence * 100 | number: '1.0-0' }}%</p>
+          </div>
+        </div>
+
+        <div class="preview-tabs">
+          <button
+            *ngFor="let alt of opts.alterations; let i = index"
+            [class.active]="selectedAlterationIndex() === i"
+            (click)="selectedAlterationIndex.set(i)"
+          >
+            {{ alt.alteration_name }}
+          </button>
+        </div>
+
+        <div class="calendar-comparison">
+          <!-- Original calendar -->
+          <div class="calendar-column">
+            <h4>Original Schedule</h4>
+            <app-weekly-schedule
+              [schedule]="schedule() ?? { name: '', favorite: false, courses: [], events: [] }"
+            ></app-weekly-schedule>
+          </div>
+
+          <!-- Altered calendar -->
+          <div
+            class="calendar-column"
+            *ngIf="selectedAlterationIndex() !== null && alterationOptions() as opts"
+          >
+            <h4>{{ opts.alterations[selectedAlterationIndex()]?.alteration_name }}</h4>
+            <app-weekly-schedule
+              [schedule]="
+                applyAlteration(
+                  schedule() ?? { name: '', favorite: false, courses: [], events: [] },
+                  opts.alterations[selectedAlterationIndex()]
+                )
+              "
+            ></app-weekly-schedule>
+          </div>
+        </div>
+
+        <div class="alteration-actions">
+          <button class="btn primary-btn" (click)="acceptAlteration()">Accept</button>
+          <button class="btn secondary-btn" (click)="showAlterationPreview.set(false)">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Success Message -->
   @if (showSuccessMessage()) {

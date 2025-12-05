@@ -37,7 +37,7 @@
 }
 
 .empty-state::before {
-  content: "📭";
+  content: '📭';
   display: block;
   font-size: 48px;
   margin-bottom: 12px;
@@ -64,7 +64,7 @@
   .layout {
     grid-template-columns: 1fr;
   }
-  
+
   .side {
     position: relative;
     top: 0;
@@ -117,7 +117,7 @@
 }
 
 .upcoming-card h3::before {
-  content: "📅";
+  content: '📅';
   font-size: 22px;
 }
 

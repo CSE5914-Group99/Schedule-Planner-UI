@@ -253,15 +253,10 @@ export class ScheduleService {
       return;
     }
 
-    console.log('Refreshing schedules for user:', user.google_uid);
-
     this.backend.getSchedules(user.google_uid).subscribe({
       next: (data: any[]) => {
-        console.log('Received schedules from backend:', data);
         const schedules = data.map((item) => this.backendToSchedule(item));
-        console.log('Parsed schedules:', schedules);
         this.schedules.set(schedules);
-        console.log('Favorite schedule after refresh:', this.favoriteSchedule());
       },
       error: (err) => {
         console.error('Failed to load schedules:', err);
@@ -309,8 +304,6 @@ export class ScheduleService {
 
   // Helper: Convert backend data to Schedule
   private backendToSchedule(data: any): Schedule {
-    console.log('Converting backend data to schedule:', data);
-
     let courses: Course[] = [];
     if (data.courses && Array.isArray(data.courses)) {
       // New format: direct mapping
@@ -386,7 +379,6 @@ export class ScheduleService {
       }
     }
 
-    console.log('Converted schedule:', schedule);
     return schedule;
   }
 
