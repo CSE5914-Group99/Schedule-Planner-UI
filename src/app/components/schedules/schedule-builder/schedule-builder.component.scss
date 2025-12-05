@@ -159,6 +159,23 @@
       }
     }
 
+    //  NEW: Analyze button styles
+    &.analyze-btn {
+      background: #8b5cf6;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #7c3aed;
+      }
+      
+      &:disabled {
+        background: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    }
+
     &.alter-btn {
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
@@ -328,6 +345,33 @@
         var(--item-color, #3b82f6) 0%,
         var(--item-color-dark, #2563eb) 100%
       );
+
+      // Difficulty-based color coding (overrides inline styles with !important)
+      // Unified: <65 green, 65-70 yellow, 71-75 orange, 76-80 light red, 81-100 bright red
+      &.difficulty-green {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+        border-left: 4px solid #15803d !important;
+      }
+
+      &.difficulty-yellow {
+        background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+        border-left: 4px solid #a16207 !important;
+      }
+
+      &.difficulty-orange {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+        border-left: 4px solid #c2410c !important;
+      }
+
+      &.difficulty-light-red {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border-left: 4px solid #b91c1c !important;
+      }
+
+      &.difficulty-bright-red {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        border-left: 4px solid #991b1b !important;
+      }
 
       &:hover {
         transform: scale(1.02);
@@ -947,28 +991,35 @@
               color: #2563eb;
             }
 
-            &.difficulty-very-hard {
+            &.difficulty-bright-red {
               background: #fef2f2;
               border-color: #fecaca;
               .score-value {
                 color: #dc2626;
               }
             }
-            &.difficulty-hard {
+            &.difficulty-light-red {
+              background: #fef2f2;
+              border-color: #fecaca;
+              .score-value {
+                color: #ef4444;
+              }
+            }
+            &.difficulty-orange {
               background: #fff7ed;
               border-color: #fed7aa;
               .score-value {
                 color: #ea580c;
               }
             }
-            &.difficulty-moderate {
+            &.difficulty-yellow {
               background: #fefce8;
               border-color: #fef08a;
               .score-value {
                 color: #ca8a04;
               }
             }
-            &.difficulty-easy {
+            &.difficulty-green {
               background: #f0fdf4;
               border-color: #bbf7d0;
               .score-value {
@@ -1030,16 +1081,19 @@
     font-weight: 700;
     margin-left: 0.5rem;
 
-    &.difficulty-very-hard {
+    &.difficulty-bright-red {
+      background: #dc2626;
+    }
+    &.difficulty-light-red {
       background: #ef4444;
     }
-    &.difficulty-hard {
+    &.difficulty-orange {
       background: #f97316;
     }
-    &.difficulty-moderate {
+    &.difficulty-yellow {
       background: #eab308;
     }
-    &.difficulty-easy {
+    &.difficulty-green {
       background: #22c55e;
     }
   }
@@ -1055,7 +1109,6 @@
     }
   }
 }
-
 .right-sidebar {
   flex: 1.5;
   min-width: 280px;

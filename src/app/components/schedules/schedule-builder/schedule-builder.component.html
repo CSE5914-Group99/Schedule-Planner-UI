@@ -58,13 +58,7 @@
       </div>
       <div class="tabs-actions">
         <button class="btn discard-btn" (click)="discardGeneratedSchedule()">Discard</button>
-        <button class="btn secondary-btn" (click)="openAnalyzer()" [disabled]="analyzing()">
-          @if (analyzing()) {
-            📊 Analyzing...
-          } @else {
-            📊 Analyze
-          }
-        </button>
+        <!-- 🔴 REMOVED: Analyze button moved to toolbar -->
         <button class="btn accept-btn" (click)="acceptGeneratedSchedule()">
           ✓ Keep This Schedule
         </button>
@@ -90,6 +84,19 @@
           ✨ Generating...
         } @else {
           ✨ Generate
+        }
+      </button>
+      <!-- 🆕 NEW: Analyze button - Always visible, disabled until schedule is kept -->
+      <button
+        class="btn analyze-btn"
+        (click)="openAnalyzer()"
+        [disabled]="!canAnalyze() || analyzing()"
+        [title]="getAnalyzeTooltip()"
+      >
+        @if (analyzing()) {
+          📊 Analyzing...
+        } @else {
+          📊 Analyze
         }
       </button>
       <button class="btn alter-btn" (click)="alterSchedule()">✏️ Alter Schedule</button>
@@ -171,6 +178,7 @@
                     class="schedule-item"
                     [class.course-item]="item.type === 'course'"
                     [class.event-item]="item.type === 'event'"
+                    [ngClass]="item.type === 'course' && getCourseDifficulty(item.id) ? getDifficultyClass(getCourseDifficulty(item.id)!) : ''"
                     [style.background]="
                       item.color
                         ? 'linear-gradient(135deg, ' +
@@ -365,6 +373,7 @@
           [teacherName]="ratingTeacherName()"
           [courseTitle]="ratingCourseTitle()"
           (close)="closeCourseRatingDialog()"
+          (ratingLoaded)="onRatingLoaded($event)"
         >
         </app-course-rating-dialog>
       </div>
