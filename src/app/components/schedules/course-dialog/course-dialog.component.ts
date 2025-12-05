@@ -1,14 +1,14 @@
 import { Component, input, output, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Campus, Course, DayOfWeek, Term } from '../../models/schedule.model';
+import { Campus, Course, DayOfWeek, Term } from '../../../models/schedule.model';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BackendService } from '../../services/backend.service';
+import { BackendService } from '../../../services/backend.service';
 import { MatDialog } from '@angular/material/dialog';
-import { CourseChooserDialogComponent } from '../section-chooser-dialog/section-chooser-dialog.component';
+import { CourseChooserDialogComponent } from '../../section-chooser-dialog/section-chooser-dialog.component';
 
 @Component({
   selector: 'app-course-dialog',

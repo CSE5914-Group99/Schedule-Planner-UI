@@ -29,6 +29,7 @@ export interface Course {
   repeatDays?: DayOfWeek[]; // Days this course repeats
   status?: string; // e.g. "Open", "Waitlist"
   ratingDetails?: any; // Detailed grading analysis
+  creditHours?: number;
 }
 
 export interface Event {
@@ -112,14 +113,15 @@ export interface ScheduleAlterations {
 }
 
 export interface Alteration {
-  alterationName: string; // "Easiest Option"
+  alteration_name: string; // "Easiest Option"
   description: string; // "Replaces CSE2331 with CSE2200"
-  classesToRemove: string[]; // ["CSE2331"]
-  classesToAdd: Course[]; // ["CSE2200"]
-  estimatedDifficultyChange: number; // -2
-  estimatedTimeChange: number; // -2.5
+  classes_to_remove: string[]; // ["CSE2331"]
+  classes_to_add: Course[]; // ["CSE2200"]
+  estimated_difficulty_change: number; // -2
+  estimated_time_change: number; // -2.5
   confidence: number; // 0.85
   warnings: string[]; // ["CSE2200 may have a time conflict with MATH2115"]
+  why_recommended: string;
 }
 
 /**

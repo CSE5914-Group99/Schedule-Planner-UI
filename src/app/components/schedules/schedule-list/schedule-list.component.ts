@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ScheduleService } from '../../services/schedule.service';
-import { AuthService } from '../../services/auth.service';
-import { Schedule } from '../../models/schedule.model';
+import { ScheduleService } from '../../../services/schedule.service';
+import { AuthService } from '../../../services/auth.service';
+import { Schedule } from '../../../models/schedule.model';
 
 @Component({
   selector: 'app-schedule-list',
@@ -50,7 +50,6 @@ export class ScheduleListComponent implements OnInit {
   editSchedule(schedule: Schedule, event: MouseEvent) {
     event.stopPropagation();
     event.preventDefault();
-    console.log('Edit clicked for schedule:', schedule);
 
     if (schedule.id) {
       this.router.navigate(['/schedule/edit', schedule.id]);

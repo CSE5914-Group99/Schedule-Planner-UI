@@ -70,7 +70,7 @@ export class LoginComponent {
               google_uid: user.google_uid,
               first_name: user.first_name,
               last_name: user.last_name,
-              preferences: user.preferences
+              preferences: user.preferences,
             });
           } catch {}
           this.message.set('Signed in. Redirecting...');
@@ -90,7 +90,7 @@ export class LoginComponent {
                     google_uid: u.google_uid,
                     first_name: u.first_name,
                     last_name: u.last_name,
-                    preferences: u.preferences
+                    preferences: u.preferences,
                   });
                 } catch {}
                 this.message.set('Signed in. Redirecting...');
@@ -109,7 +109,7 @@ export class LoginComponent {
                           google_uid: user2.google_uid,
                           first_name: user2.first_name,
                           last_name: user2.last_name,
-                          preferences: user2.preferences
+                          preferences: user2.preferences,
                         });
                       } catch {}
                       this.message.set('Signed in. Redirecting...');
@@ -126,7 +126,9 @@ export class LoginComponent {
                 }
                 console.warn('Backend createUser error', createErr);
                 // Do not redirect if creation failed, so user can see the error
-                this.message.set(`Login failed: Could not create user. ${createErr.statusText || createErr.message || createStatus}`);
+                this.message.set(
+                  `Login failed: Could not create user. ${createErr.statusText || createErr.message || createStatus}`,
+                );
                 this.loading.set(false);
               },
             });
@@ -142,7 +144,7 @@ export class LoginComponent {
                   google_uid: created.google_uid,
                   first_name: created.first_name,
                   last_name: created.last_name,
-                  preferences: created.preferences
+                  preferences: created.preferences,
                 });
               } catch {}
               this.message.set('Signed in. Redirecting...');
@@ -151,7 +153,9 @@ export class LoginComponent {
             },
             error: (createErr) => {
               console.warn('Backend createUser error after fallback check', createErr);
-              this.message.set(`Login failed: Could not create user. ${createErr.statusText || createErr.message}`);
+              this.message.set(
+                `Login failed: Could not create user. ${createErr.statusText || createErr.message}`,
+              );
               this.loading.set(false);
             },
           });

@@ -118,7 +118,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
             google_uid: user.google_uid,
             first_name: user.first_name,
             last_name: user.last_name,
-            preferences: user.preferences
+            preferences: user.preferences,
           });
           this.router.navigate(['/landing']);
         },
@@ -131,7 +131,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
                   google_uid: created.google_uid,
                   first_name: created.first_name,
                   last_name: created.last_name,
-                  preferences: created.preferences
+                  preferences: created.preferences,
                 });
                 this.router.navigate(['/landing']);
               },
@@ -145,10 +145,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
                         google_uid: user2.google_uid,
                         first_name: user2.first_name,
                         last_name: user2.last_name,
-                        preferences: user2.preferences
+                        preferences: user2.preferences,
                       });
                       this.router.navigate(['/landing']);
-                    }
+                    },
                   });
                 } else {
                   console.error('Backend createUser error', createErr);

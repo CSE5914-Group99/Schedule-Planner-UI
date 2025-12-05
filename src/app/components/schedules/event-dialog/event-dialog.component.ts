@@ -1,7 +1,7 @@
 import { Component, input, output, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Event, DayOfWeek } from '../../models/schedule.model';
+import { Event, DayOfWeek } from '../../../models/schedule.model';
 
 @Component({
   selector: 'app-event-dialog',
