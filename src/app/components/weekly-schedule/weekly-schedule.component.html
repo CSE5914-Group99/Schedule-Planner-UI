@@ -30,6 +30,7 @@
       @for (day of course.repeatDays; track day) {
         <div
           class="pill course-pill"
+          [class]="getDifficultyClass(course.difficultyRating)"
           [style.gridColumn]="getDayIndex(day) + 2"
           [style.gridRowStart]="getRowStart(course.startTime || '08:00')"
           [style.gridRowEnd]="getRowEnd(course.endTime || '08:00')"
@@ -40,6 +41,11 @@
               course.title && course.title !== 'Untitled Course' ? course.title : course.courseId
             }}
           </span>
+          @if (course.difficultyRating) {
+            <span class="difficulty-badge" [class]="getDifficultyClass(course.difficultyRating)">
+              {{ course.difficultyRating }}
+            </span>
+          }
           <button class="more-details-btn" (click)="onCourseDetailsClick(course, $event)">
             Details
           </button>

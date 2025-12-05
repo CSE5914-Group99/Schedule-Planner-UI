@@ -92,4 +92,14 @@ export class WeeklyScheduleComponent {
       courseTitle: course.title,
     });
   }
+
+  getDifficultyClass(score: number | undefined): string {
+    if (score === undefined || score === null) return '';
+    // Unified: <65 green, 65-70 yellow, 71-75 orange, 76-80 light red, 81-100 bright red
+    if (score >= 81) return 'difficulty-bright-red';
+    if (score >= 76) return 'difficulty-light-red';
+    if (score >= 71) return 'difficulty-orange';
+    if (score >= 65) return 'difficulty-yellow';
+    return 'difficulty-green';
+  }
 }

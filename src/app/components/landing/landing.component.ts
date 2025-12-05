@@ -7,7 +7,7 @@ import { ScheduleService } from '../../services/schedule.service';
 import { ScheduleItem } from '../../models/schedule-item.model';
 import { WeeklyScheduleComponent } from '../weekly-schedule/weekly-schedule.component';
 import { CourseRatingDialogComponent } from '../course-rating-dialog/course-rating-dialog.component';
-import { Schedule } from '../../models/schedule.model';
+import { Schedule, ClassScore } from '../../models/schedule.model';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -198,5 +198,15 @@ export class LandingComponent implements OnInit {
     this.ratingCourseId.set(null);
     this.ratingTeacherName.set(undefined);
     this.ratingCourseTitle.set(undefined);
+  }
+
+  onRatingLoaded(event: { courseId: string; score: number; classScore: ClassScore }) {
+    // Update the course's difficultyRating in the schedule so the color persists on calendar
+    const courseIndex = this.schedule.courses.findIndex((c) => c.id === event.courseId);
+    if (courseIndex !== -1) {
+      this.schedule.courses[courseIndex].difficultyRating = event.score;
+      // Trigger change detection
+      this.schedule = { ...this.schedule };
+    }
   }
 }

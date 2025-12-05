@@ -31,6 +31,9 @@ export class CourseRatingDialogComponent implements OnInit {
   /** Emitted when the user closes the dialog */
   close = output<void>();
 
+  /** Emitted when ratings are successfully loaded, with the score */
+  ratingLoaded = output<{ courseId: string; score: number; classScore: ClassScore }>();
+
   private backendService = inject(BackendService);
 
   // Component state
@@ -53,6 +56,12 @@ export class CourseRatingDialogComponent implements OnInit {
       next: (data) => {
         this.ratings.set(data);
         this.loading.set(false);
+        // Emit the rating so parent can update the course
+        this.ratingLoaded.emit({
+          courseId: courseIdValue,
+          score: data.score,
+          classScore: data,
+        });
       },
       error: (err) => {
         console.error('Failed to fetch course ratings:', err);
@@ -68,21 +77,24 @@ export class CourseRatingDialogComponent implements OnInit {
 
   /**
    * Returns a CSS class based on the score value for color coding
+   * <65 green, 65-70 yellow, 71-75 orange, 76-80 light red, 81-100 bright red
    */
   getScoreClass(score: number): string {
-    if (score >= 80) return 'score-very-hard';
-    if (score >= 60) return 'score-hard';
-    if (score >= 40) return 'score-moderate';
-    return 'score-easy';
+    if (score >= 81) return 'score-bright-red';
+    if (score >= 76) return 'score-light-red';
+    if (score >= 71) return 'score-orange';
+    if (score >= 65) return 'score-yellow';
+    return 'score-green';
   }
 
   /**
    * Returns a human-readable label for the difficulty score
    */
   getDifficultyLabel(score: number): string {
-    if (score >= 80) return 'Very Challenging';
-    if (score >= 60) return 'Challenging';
-    if (score >= 40) return 'Moderate';
+    if (score >= 81) return 'Very Hard';
+    if (score >= 76) return 'Hard';
+    if (score >= 71) return 'Challenging';
+    if (score >= 65) return 'Moderate';
     return 'Manageable';
   }
 

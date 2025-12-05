@@ -12,6 +12,7 @@ import {
   Term,
   Campus,
   Schedule,
+  ClassScore,
 } from '../../models/schedule.model';
 import { CourseDialogComponent } from './course-dialog.component';
 import { EventDialogComponent } from './event-dialog.component';
@@ -129,6 +130,35 @@ export class ScheduleBuilderComponent implements OnInit {
   originalSchedule = signal<Schedule | null>(null);
   isGeneratedMode = signal(false);
   selectedGeneratedIndex = signal(0);
+
+  // NEW: Track if user has accepted/selected a generated schedule
+  hasAcceptedSchedule = signal(false);
+
+  // NEW: Computed property to determine if Analyze button should be enabled
+  canAnalyze = computed(() => {
+    // If in generated mode, user must have accepted a schedule first
+    if (this.isGeneratedMode()) {
+      return this.hasAcceptedSchedule();
+    }
+    
+    // If not in generated mode, can analyze if there are courses
+    const sched = this.schedule();
+    return sched && sched.courses && sched.courses.length > 0;
+  });
+
+  // NEW: Helper method for tooltip text
+  getAnalyzeTooltip(): string {
+    if (this.analyzing()) {
+      return 'Analyzing schedule...';
+    }
+    if (this.isGeneratedMode() && !this.hasAcceptedSchedule()) {
+      return 'Please click "Keep This Schedule" first to analyze';
+    }
+    if (!this.schedule() || this.schedule()!.courses.length === 0) {
+      return 'Add courses to analyze schedule';
+    }
+    return 'Analyze schedule difficulty and workload';
+  }
 
   //Campus/term
   campuses: Campus[] = ['Columbus', 'Lima', 'Mansfield', 'Marion', 'Newark', 'Wooster'];
@@ -312,10 +342,12 @@ export class ScheduleBuilderComponent implements OnInit {
   }
 
   getDifficultyClass(score: number): string {
-    if (score >= 80) return 'difficulty-very-hard';
-    if (score >= 60) return 'difficulty-hard';
-    if (score >= 40) return 'difficulty-moderate';
-    return 'difficulty-easy';
+    // Unified color scheme: <65 green, 65-70 yellow, 71-75 orange, 76-80 light red, 81-100 bright red
+    if (score >= 81) return 'difficulty-bright-red';
+    if (score >= 76) return 'difficulty-light-red';
+    if (score >= 71) return 'difficulty-orange';
+    if (score >= 65) return 'difficulty-yellow';
+    return 'difficulty-green';
   }
 
   // Course Rating Dialog
@@ -331,6 +363,13 @@ export class ScheduleBuilderComponent implements OnInit {
     this.ratingCourseId.set(null);
     this.ratingTeacherName.set(undefined);
     this.ratingCourseTitle.set(undefined);
+  }
+
+  onRatingLoaded(event: { courseId: string; score: number; classScore: ClassScore }) {
+    // Update the course's difficultyRating in the schedule so the color persists on calendar
+    this.scheduleService.updateCourse(event.courseId, {
+      difficultyRating: event.score,
+    });
   }
 
   // Analyzer
@@ -407,6 +446,7 @@ export class ScheduleBuilderComponent implements OnInit {
 
     this.generating.set(true);
     this.errorMessage.set(null);
+    this.hasAcceptedSchedule.set(false); // 🆕 NEW: Reset when generating new schedules
 
     // Backup current schedule
     this.originalSchedule.set(JSON.parse(JSON.stringify(sched)));
@@ -483,6 +523,7 @@ export class ScheduleBuilderComponent implements OnInit {
   }
 
   acceptGeneratedSchedule() {
+    this.hasAcceptedSchedule.set(true); // 🆕 NEW: Mark as accepted
     this.isGeneratedMode.set(false);
     this.generatedSchedules.set([]);
     this.originalSchedule.set(null);
@@ -494,6 +535,7 @@ export class ScheduleBuilderComponent implements OnInit {
     if (original) {
       this.scheduleService.setCurrentSchedule(original);
     }
+    this.hasAcceptedSchedule.set(false); // 🆕 NEW: Reset flag
     this.isGeneratedMode.set(false);
     this.generatedSchedules.set([]);
     this.originalSchedule.set(null);
