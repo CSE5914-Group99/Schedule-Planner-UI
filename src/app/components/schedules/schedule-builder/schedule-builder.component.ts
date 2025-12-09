@@ -670,15 +670,8 @@ export class ScheduleBuilderComponent implements OnInit {
   }
 
   selectGeneratedSchedule(index: number) {
-<<<<<<< Updated upstream:src/app/components/schedules/schedule-builder/schedule-builder.component.ts
     this.selectedGeneratedIndex.set(index);
     const genSched = this.generatedSchedules()[index];
-=======
-  console.log(`Switching to generated schedule option ${index + 1}`);
-  this.selectedGeneratedIndex.set(index);
-  const genSched = this.generatedSchedules()[index];
-  console.log('Selected schedule data:', genSched);
->>>>>>> Stashed changes:src/app/components/schedules/schedule-builder.component.ts
 
   const original = this.originalSchedule();
 
