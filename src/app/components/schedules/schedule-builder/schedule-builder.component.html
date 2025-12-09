@@ -153,6 +153,30 @@
     </div>
   </div>
 
+@if (schedule() && schedule()!.courses.length === 0 && schedule()!.events.length === 0) {
+  <div class="empty-calendar-state">
+    <div class="empty-icon">📅</div>
+    <h2>Your Schedule is Empty</h2>
+    <p>Get started by adding your first course or event</p>
+    <div class="empty-actions">
+      <button class="btn primary-btn" (click)="openCourseDialog()">
+        + Add Course
+      </button>
+      <button class="btn secondary-btn" (click)="openEventDialog()">
+        + Add Event
+      </button>
+    </div>
+    <div class="tips-box">
+      <h4>💡 Quick Tips</h4>
+      <ul>
+        <li>Click "Add Course" to search for classes</li>
+        <li>Use "Generate" to create optimal schedules automatically</li>
+        <li>Add events to block out personal time</li>
+      </ul>
+    </div>
+  </div>
+}
+
   <!-- Calendar Grid -->
   @if (schedule()) {
     <div class="calendar-layout">
