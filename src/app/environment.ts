@@ -8,11 +8,6 @@ export const environment = {
     messagingSenderId: '903307041169',
     appId: '1:903307041169:web:52ee211481272aaee62230',
   },
-<<<<<<< Updated upstream
   // apiBaseUrl: 'http://127.0.0.1:8000', // LOCAL BACKEND
   apiBaseUrl: 'https://g99project-477702.uc.r.appspot.com', // PROD BACKEND
-=======
-  //apiBaseUrl: 'http://127.0.0.1:8000', // LOCAL BACKEND
-   apiBaseUrl: 'https://g99project-477702.uc.r.appspot.com', // PROD BACKEND
->>>>>>> Stashed changes
 };
