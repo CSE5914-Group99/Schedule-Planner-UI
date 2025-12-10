@@ -153,29 +153,25 @@
     </div>
   </div>
 
-@if (schedule() && schedule()!.courses.length === 0 && schedule()!.events.length === 0) {
-  <div class="empty-calendar-state">
-    <div class="empty-icon">📅</div>
-    <h2>Your Schedule is Empty</h2>
-    <p>Get started by adding your first course or event</p>
-    <div class="empty-actions">
-      <button class="btn primary-btn" (click)="openCourseDialog()">
-        + Add Course
-      </button>
-      <button class="btn secondary-btn" (click)="openEventDialog()">
-        + Add Event
-      </button>
+  @if (schedule() && schedule()!.courses.length === 0 && schedule()!.events.length === 0) {
+    <div class="empty-calendar-state">
+      <div class="empty-icon">📅</div>
+      <h2>Your Schedule is Empty</h2>
+      <p>Get started by adding your first course or event</p>
+      <div class="empty-actions">
+        <button class="btn primary-btn" (click)="openCourseDialog()">+ Add Course</button>
+        <button class="btn secondary-btn" (click)="openEventDialog()">+ Add Event</button>
+      </div>
+      <div class="tips-box">
+        <h4>💡 Quick Tips</h4>
+        <ul>
+          <li>Click "Add Course" to search for classes</li>
+          <li>Use "Generate" to create optimal schedules automatically</li>
+          <li>Add events to block out personal time</li>
+        </ul>
+      </div>
     </div>
-    <div class="tips-box">
-      <h4>💡 Quick Tips</h4>
-      <ul>
-        <li>Click "Add Course" to search for classes</li>
-        <li>Use "Generate" to create optimal schedules automatically</li>
-        <li>Add events to block out personal time</li>
-      </ul>
-    </div>
-  </div>
-}
+  }
 
   <!-- Calendar Grid -->
   @if (schedule()) {
@@ -202,7 +198,11 @@
                     class="schedule-item"
                     [class.course-item]="item.type === 'course'"
                     [class.event-item]="item.type === 'event'"
-                    [ngClass]="item.type === 'course' && getCourseDifficulty(item.id) ? getDifficultyClass(getCourseDifficulty(item.id)!) : ''"
+                    [ngClass]="
+                      item.type === 'course' && getCourseDifficulty(item.id)
+                        ? getDifficultyClass(getCourseDifficulty(item.id)!)
+                        : ''
+                    "
                     [style.background]="
                       item.color
                         ? 'linear-gradient(135deg, ' +
@@ -266,10 +266,11 @@
         <div
           class="analysis-panel"
           *ngIf="
-            showAnalyzer() ||
-            analyzing() ||
-            isGeneratedMode() ||
-            (schedule()?.difficultyScore && schedule()?.difficultyScore! > 0)
+            !alterDialogVisible() &&
+            (showAnalyzer() ||
+              analyzing() ||
+              isGeneratedMode() ||
+              (schedule()?.difficultyScore && schedule()?.difficultyScore! > 0))
           "
         >
           <div class="panel-header">
@@ -342,11 +343,25 @@
               placeholder="What are you looking for in the replacement?"
               (input)="criteriaText.set($any($event.target).value)"
             ></textarea>
+
+            <p class="loading-note">
+              This may take a minute once you submit.
+              <span *ngIf="altering()" class="loading-spinner">⟳</span>
+            </p>
+
             <div class="alter-actions">
-              <button class="btn secondary-btn" (click)="alterDialogVisible.set(false)">
+              <button
+                class="btn secondary-btn"
+                (click)="alterDialogVisible.set(false)"
+                [disabled]="altering()"
+              >
                 Cancel
               </button>
-              <button class="btn primary-btn" (click)="submitAlterRequest()">
+              <button
+                class="btn primary-btn"
+                (click)="submitAlterRequest()"
+                [disabled]="altering()"
+              >
                 Submit Alteration
               </button>
             </div>
@@ -405,7 +420,7 @@
   }
 
   <div *ngIf="showAlterationPreview() && alterationOptions() as opts">
-    <div class="dialog-overlay" (click)="showAlterationPreview.set(false)">
+    <div class="dialog-overlay-alterations" (click)="showAlterationPreview.set(false)">
       <div class="dialog-content calendar-preview" (click)="$event.stopPropagation()">
         <h3>Preview Alterations</h3>
         <div class="alteration-list">
@@ -453,10 +468,10 @@
         </div>
 
         <div class="alteration-actions">
-          <button class="btn primary-btn" (click)="acceptAlteration()">Accept</button>
           <button class="btn secondary-btn" (click)="showAlterationPreview.set(false)">
             Cancel
           </button>
+          <button class="btn primary-btn" (click)="acceptAlteration()">Accept</button>
         </div>
       </div>
     </div>

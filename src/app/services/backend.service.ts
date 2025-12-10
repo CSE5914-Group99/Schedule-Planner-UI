@@ -15,7 +15,6 @@ import {
   ScheduleAlterations,
   Term,
 } from '../models/schedule.model';
-import { mock } from 'node:test';
 
 @Injectable({
   providedIn: 'root',
@@ -137,6 +136,7 @@ export class BackendService {
     modification_requests: ModificationRequests[],
   ): Observable<any> {
     const payload = this.toClassRecommendationRequest(schedule, modification_requests);
+    console.log(payload);
     return this.http.post<any>(`${this.base_url}/courses/class-recommendations`, payload);
   }
 
@@ -162,7 +162,7 @@ export class BackendService {
       score: Math.max(c.difficultyRating ?? 1, 1),
       ch: c.creditHours ?? 3,
       summary: c.title ?? `${c.courseId} — ${c.instructor ?? 'Unknown'}`,
-      time_load: schedule.weeklyHours ?? 0,
+      time_load: Math.min((schedule.creditHours ?? 3) * 2, 8),
       rigor: 0,
       assessment_intensity: 0,
       project_intensity: 0,
@@ -178,7 +178,7 @@ export class BackendService {
       difficulty: schedule.difficultyScore ?? 1,
       hours_per_week: schedule.weeklyHours ?? 0,
       credits: schedule.creditHours ?? 0,
-      class_scores: classScores, // <-- array now
+      class_scores: classScores,
       total_credit_hours: schedule.creditHours ?? 0,
       num_classes: schedule.courses.length,
       summary: `${schedule.courses.length} classes, ${schedule.creditHours ?? 0} credits`,
@@ -186,7 +186,7 @@ export class BackendService {
       adjusted_assessment_intensity: 0,
       adjusted_project_intensity: 0,
       adjusted_rigor: 0,
-      time_load: schedule.weeklyHours ?? 0,
+      time_load: Math.min((schedule.creditHours ?? 3) * 2, 8),
       constraints: '',
       confidence: 0.6,
     };
