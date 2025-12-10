@@ -67,6 +67,8 @@ export class ScheduleBuilderComponent implements OnInit {
   showAlterationPreview = signal(false);
   alterationOptions = signal<ScheduleAlterations | null>(null);
   selectedAlterationIndex = signal<number>(0);
+  altering = signal(false);
+
   // Calendar configuration
   days: DayOfWeek[] = [
     'Monday',
@@ -152,7 +154,7 @@ export class ScheduleBuilderComponent implements OnInit {
     if (this.isGeneratedMode()) {
       return this.hasAcceptedSchedule();
     }
-    
+
     // If not in generated mode, can analyze if there are courses
     const sched = this.schedule();
     return sched && sched.courses && sched.courses.length > 0;
@@ -398,67 +400,67 @@ export class ScheduleBuilderComponent implements OnInit {
 
   // Analyzer
   openAnalyzer() {
-  if (this.isGeneratedMode()) {
-    const schedules = this.generatedSchedules();
-    const needsAnalysis = schedules.some((s) => !s.difficultyScore || s.difficultyScore === 0);
+    if (this.isGeneratedMode()) {
+      const schedules = this.generatedSchedules();
+      const needsAnalysis = schedules.some((s) => !s.difficultyScore || s.difficultyScore === 0);
 
-    if (needsAnalysis) {
-      this.analyzing.set(true);
-      this.showAnalyzer.set(true);
+      if (needsAnalysis) {
+        this.analyzing.set(true);
+        this.showAnalyzer.set(true);
 
-      this.backendService.analyzeSchedules(schedules).subscribe({
-        next: (analyzedSchedules) => {
-          console.log('📊 Generated Mode - Backend response:', analyzedSchedules); // 🆕 添加
-          console.log('📋 gradingDetails:', analyzedSchedules[0]?.gradingDetails); // 🆕 添加
-          
-          if (analyzedSchedules && analyzedSchedules.length > 0) {
-            this.generatedSchedules.set(analyzedSchedules);
-            this.selectGeneratedSchedule(this.selectedGeneratedIndex());
-          }
-          this.analyzing.set(false);
-        },
-        error: (err) => {
-          console.error('Analysis failed', err);
-          this.analyzing.set(false);
-          this.errorMessage.set('Failed to analyze schedules.');
-        },
-      });
+        this.backendService.analyzeSchedules(schedules).subscribe({
+          next: (analyzedSchedules) => {
+            console.log('📊 Generated Mode - Backend response:', analyzedSchedules); // 🆕 添加
+            console.log('📋 gradingDetails:', analyzedSchedules[0]?.gradingDetails); // 🆕 添加
+
+            if (analyzedSchedules && analyzedSchedules.length > 0) {
+              this.generatedSchedules.set(analyzedSchedules);
+              this.selectGeneratedSchedule(this.selectedGeneratedIndex());
+            }
+            this.analyzing.set(false);
+          },
+          error: (err) => {
+            console.error('Analysis failed', err);
+            this.analyzing.set(false);
+            this.errorMessage.set('Failed to analyze schedules.');
+          },
+        });
+      } else {
+        this.showAnalyzer.set(true);
+      }
     } else {
-      this.showAnalyzer.set(true);
-    }
-  } else {
-    const current = this.schedule();
-    if (!current) return;
+      const current = this.schedule();
+      if (!current) return;
 
-    if (
-      (!current.difficultyScore || current.difficultyScore === 0) &&
-      current.courses.length > 0
-    ) {
-      this.analyzing.set(true);
-      this.showAnalyzer.set(true);
+      if (
+        (!current.difficultyScore || current.difficultyScore === 0) &&
+        current.courses.length > 0
+      ) {
+        this.analyzing.set(true);
+        this.showAnalyzer.set(true);
 
-      this.backendService.analyzeSchedules([current]).subscribe({
-        next: (analyzedSchedules) => {
-          console.log('📊 Normal Mode - Backend response:', analyzedSchedules); // 🆕 添加
-          console.log('📋 gradingDetails:', analyzedSchedules[0]?.gradingDetails); // 🆕 添加
-          
-          if (analyzedSchedules && analyzedSchedules.length > 0) {
-            const analyzed = analyzedSchedules[0];
-            this.scheduleService.setCurrentSchedule(analyzed);
-          }
-          this.analyzing.set(false);
-        },
-        error: (err) => {
-          console.error('Analysis failed', err);
-          this.analyzing.set(false);
-          this.errorMessage.set('Failed to analyze schedule.');
-        },
-      });
-    } else {
-      this.showAnalyzer.set(true);
+        this.backendService.analyzeSchedules([current]).subscribe({
+          next: (analyzedSchedules) => {
+            console.log('📊 Normal Mode - Backend response:', analyzedSchedules); // 🆕 添加
+            console.log('📋 gradingDetails:', analyzedSchedules[0]?.gradingDetails); // 🆕 添加
+
+            if (analyzedSchedules && analyzedSchedules.length > 0) {
+              const analyzed = analyzedSchedules[0];
+              this.scheduleService.setCurrentSchedule(analyzed);
+            }
+            this.analyzing.set(false);
+          },
+          error: (err) => {
+            console.error('Analysis failed', err);
+            this.analyzing.set(false);
+            this.errorMessage.set('Failed to analyze schedule.');
+          },
+        });
+      } else {
+        this.showAnalyzer.set(true);
+      }
     }
   }
-}
 
   // Schedule management
   updateScheduleName(name: string) {
@@ -526,6 +528,8 @@ export class ScheduleBuilderComponent implements OnInit {
     const sched = this.schedule();
     if (!sched) return;
 
+    this.altering.set(true);
+
     const requests: ModificationRequests[] = this.selectedAlterClasses().map((course) => ({
       classToReplace: course.courseId,
       reason: this.authService.getUser().preferences ?? '',
@@ -535,7 +539,14 @@ export class ScheduleBuilderComponent implements OnInit {
     this.backendService.getClassRecommendations(sched, requests).subscribe({
       next: (response) => {
         console.log('Alteration submitted successfully', response);
+        this.altering.set(false);
         this.alterDialogVisible.set(false);
+
+        if (!response.alterations || response.alterations.length === 0) {
+          this.errorMessage.set('No alterations would work for the current schedule.');
+          return;
+        }
+
         this.showSuccessMessage.set(true);
         setTimeout(() => this.showSuccessMessage.set(false), 3000);
         const alterations: ScheduleAlterations = this.translateToScheduleAlterations(
@@ -602,12 +613,12 @@ export class ScheduleBuilderComponent implements OnInit {
 
     // Remove classes
     altered.courses = altered.courses.filter(
-    (c: any) => !alteration.classes_to_remove.some((removedId: string) => {
-      const courseId = removedId.split('(')[0].split('—')[0].trim();
-      return c.courseId.trim() === courseId;
-    })
-  );
-
+      (c: any) =>
+        !alteration.classes_to_remove.some((removedId: string) => {
+          const courseId = removedId.split('(')[0].split('—')[0].trim();
+          return c.courseId.trim() === courseId;
+        }),
+    );
 
     // Add new classes
     alteration.classes_to_add.forEach((newClass: any) => {
@@ -673,32 +684,31 @@ export class ScheduleBuilderComponent implements OnInit {
     this.selectedGeneratedIndex.set(index);
     const genSched = this.generatedSchedules()[index];
 
-  const original = this.originalSchedule();
+    const original = this.originalSchedule();
 
-  if (!original) return;
+    if (!original) return;
 
-  // Merge generated courses with original metadata (name, etc)
-  const updatedSchedule = {
-    ...original, // Keep original ID, Name, etc.
-    courses: genSched.courses,
-    events: genSched.events,
-    difficultyScore: genSched.difficultyScore,
-    weeklyHours: genSched.weeklyHours,
-    creditHours: genSched.creditHours,
-    gradingDetails: genSched.gradingDetails,  // 🆕 添加这一行！
-  };
+    // Merge generated courses with original metadata (name, etc)
+    const updatedSchedule = {
+      ...original, // Keep original ID, Name, etc.
+      courses: genSched.courses,
+      events: genSched.events,
+      difficultyScore: genSched.difficultyScore,
+      weeklyHours: genSched.weeklyHours,
+      creditHours: genSched.creditHours,
+      gradingDetails: genSched.gradingDetails, // 🆕 添加这一行！
+    };
 
-  // Assign IDs and colors to new courses
-  updatedSchedule.courses = updatedSchedule.courses.map((c: any, i: number) => ({
-    ...c,
-    id: `${Date.now()}-${i}`,
-    color: this.generateColor('course', i),
-  }));
+    // Assign IDs and colors to new courses
+    updatedSchedule.courses = updatedSchedule.courses.map((c: any, i: number) => ({
+      ...c,
+      id: `${Date.now()}-${i}`,
+      color: this.generateColor('course', i),
+    }));
 
-  // Force a new object reference for the signal to detect change
-  this.scheduleService.setCurrentSchedule({ ...updatedSchedule });
-}
-  
+    // Force a new object reference for the signal to detect change
+    this.scheduleService.setCurrentSchedule({ ...updatedSchedule });
+  }
 
   acceptGeneratedSchedule() {
     this.hasAcceptedSchedule.set(true); // 🆕 NEW: Mark as accepted
